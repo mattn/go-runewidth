@@ -1,6 +1,8 @@
 go-runewidth
 ============
 
+[![Coverage Status](https://coveralls.io/repos/mattn/go-runewidth/badge.png?branch=HEAD)](https://coveralls.io/r/mattn/go-runewidth?branch=HEAD)
+
 Provides functions to get fixed width of the character or string.
 
 Usage
