@@ -1,8 +1,7 @@
-package runewidth_test
+package runewidth
 
 import (
 	"testing"
-	. "unicode"
 )
 
 var runewidthtests = []struct {
