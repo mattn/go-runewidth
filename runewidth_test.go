@@ -14,6 +14,9 @@ var runewidthtests = []struct {
 	{'ｶ', 1},
 	{'ｲ', 1},
 	{'☆', 2}, // double width in ambiguous
+	{'\x00', 0},
+	{'\x01', 1},
+	{'\u0300', 0},
 }
 
 func TestRuneWidth(t *testing.T) {
@@ -59,7 +62,7 @@ var isambiguouswidthtests = []struct {
 func TestIsAmbiguousWidth(t *testing.T) {
 	for _, tt := range isambiguouswidthtests {
 		if out := IsAmbiguousWidth(tt.in); out != tt.out {
-			t.Errorf("Width(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("IsAmbiguousWidth(%q) = %v, want %v", tt.in, out, tt.out)
 		}
 	}
 }
@@ -75,7 +78,14 @@ var stringwidthtests = []struct {
 func TestStringWidth(t *testing.T) {
 	for _, tt := range stringwidthtests {
 		if out := StringWidth(tt.in); out != tt.out {
-			t.Errorf("Width(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("StringWidth(%q) = %v, want %v", tt.in, out, tt.out)
 		}
+	}
+}
+
+func TestStringWidthInvalid(t *testing.T) {
+	s := "こんにちわ\x00世界"
+	if out := StringWidth(s); out != 14 {
+		t.Errorf("StringWidth(%q) = %v, want %v", s, out, 14)
 	}
 }
