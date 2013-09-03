@@ -3,6 +3,14 @@ go-runewidth
 
 Provides functions to get fixed width of the character or string.
 
+Usage
+-----
+
+```go
+runewidth.StringWidth("つのだ☆HIRO") == 12
+```
+
+
 Author
 ------
 
