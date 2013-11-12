@@ -89,3 +89,12 @@ func TestStringWidthInvalid(t *testing.T) {
 		t.Errorf("StringWidth(%q) = %v, want %v", s, out, 14)
 	}
 }
+
+func TestTruncate(t *testing.T) {
+	s := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+	expected := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおお..."
+
+	if out := Truncate(s, 80, "..."); out != expected {
+		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
+	}
+}

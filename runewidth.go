@@ -161,3 +161,23 @@ func StringWidth(s string) (width int) {
 	}
 	return width
 }
+
+func Truncate(s string, w int, tail string) string {
+	i := w
+	r := []rune(s)
+	if i > len(r)-1 {
+		i = len(r) - 1
+	}
+	tw := StringWidth(tail)
+	w -= tw
+	width := StringWidth(string(r))
+	for {
+		if i == 0 || width <= w {
+			break
+		}
+		cw := RuneWidth(r[i])
+		width -= cw
+		i--
+	}
+	return string(r[0:i+1]) + tail
+}
