@@ -98,3 +98,12 @@ func TestTruncate(t *testing.T) {
 		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
 	}
 }
+
+func TestTruncateNoNeeded(t *testing.T) {
+	s := "あいうえおあい"
+	expected := "あいうえおあい"
+
+	if out := Truncate(s, 80, "..."); out != expected {
+		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
+	}
+}

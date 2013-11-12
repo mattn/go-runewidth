@@ -171,6 +171,9 @@ func Truncate(s string, w int, tail string) string {
 	tw := StringWidth(tail)
 	w -= tw
 	width := StringWidth(string(r))
+	if width < w {
+		return s
+	}
 	for {
 		if i <= 0 || width <= w {
 			break
