@@ -172,7 +172,7 @@ func Truncate(s string, w int, tail string) string {
 	w -= tw
 	width := StringWidth(string(r))
 	for {
-		if i == 0 || width <= w {
+		if i <= 0 || width <= w {
 			break
 		}
 		cw := RuneWidth(r[i])
