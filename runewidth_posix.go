@@ -34,9 +34,11 @@ func IsEastAsian() bool {
 		return false
 	}
 
-	pos := strings.IndexByte(charset, '@')
-	if pos >= 0 {
-		charset = charset[:pos]
+	for pos, b := range []byte(charset) {
+		if b == '@' {
+			charset = charset[:i]
+			break
+		}
 	}
 
 	mbc_max := 1
