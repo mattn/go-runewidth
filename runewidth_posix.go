@@ -36,7 +36,7 @@ func IsEastAsian() bool {
 
 	for pos, b := range []byte(charset) {
 		if b == '@' {
-			charset = charset[:i]
+			charset = charset[:pos]
 			break
 		}
 	}
