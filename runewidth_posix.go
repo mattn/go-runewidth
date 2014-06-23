@@ -30,7 +30,7 @@ func IsEastAsian() bool {
 		charset = r[1]
 	}
 
-	if strings.HasSuffix("@cjk_narrow") {
+	if strings.HasSuffix(charset, "@cjk_narrow") {
 		return false
 	}
 
@@ -39,7 +39,7 @@ func IsEastAsian() bool {
 		charset = charset[:pos]
 	}
 
-	mbc_max = 1
+	mbc_max := 1
 	switch charset {
 	case "utf-8", "utf8":
 		mbc_max = 6
@@ -57,10 +57,10 @@ func IsEastAsian() bool {
 		mbc_max = 2
 	}
 
-	if mbc_max > 1 && (charset[0] != 'U'
-			|| strings.HasPrefix(locale, "ja")
-			|| strings.HasPrefix(locale, "ko")
-			|| strings.HasPrefix(locale, "zn"))) {
+	if mbc_max > 1 && (charset[0] != 'U' ||
+			strings.HasPrefix(locale, "ja") ||
+			strings.HasPrefix(locale, "ko") ||
+			strings.HasPrefix(locale, "zn")) {
 		return true
 	}
 	return false
