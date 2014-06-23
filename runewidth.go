@@ -1,5 +1,7 @@
 package runewidth
 
+var EastAsianWidth = IsEastAsian()
+
 type interval struct {
 	first rune
 	last  rune
@@ -111,9 +113,17 @@ var ambiguous = []interval{
 	{0xFFFD, 0xFFFD}, {0xF0000, 0xFFFFD}, {0x100000, 0x10FFFD},
 }
 
+type Condition struct {
+	EastAsianWidth bool
+}
+
+func NewCondition() *Condition {
+	return &Condition {EastAsianWidth}
+}
+
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
-func RuneWidth(r rune) int {
+func (c *Condition) RuneWidth(r rune) int {
 	if r == 0 {
 		return 0
 	}
@@ -126,7 +136,7 @@ func RuneWidth(r rune) int {
 		}
 	}
 
-	if IsAmbiguousWidth(r) {
+	if c.EastAsianWidth && IsAmbiguousWidth(r) {
 		return 2
 	}
 
@@ -145,24 +155,14 @@ func RuneWidth(r rune) int {
 	return 1
 }
 
-// IsAmbiguousWidth returns whether is ambiguous width or not.
-func IsAmbiguousWidth(r rune) bool {
-	for _, iv := range ambiguous {
-		if iv.first <= r && r <= iv.last {
-			return true
-		}
-	}
-	return false
-}
-
-func StringWidth(s string) (width int) {
+func (c *Condition) StringWidth(s string) (width int) {
 	for _, r := range []rune(s) {
-		width += RuneWidth(r)
+		width += c.RuneWidth(r)
 	}
 	return width
 }
 
-func Truncate(s string, w int, tail string) string {
+func (c *Condition) Truncate(s string, w int, tail string) string {
 	i := w
 	r := []rune(s)
 	if i > len(r)-1 {
@@ -183,4 +183,28 @@ func Truncate(s string, w int, tail string) string {
 		i--
 	}
 	return string(r[0:i+1]) + tail
+}
+
+// RuneWidth returns the number of cells in r.
+// See http://www.unicode.org/reports/tr11/
+func RuneWidth(r rune) int {
+	return NewCondition().RuneWidth(r)
+}
+
+// IsAmbiguousWidth returns whether is ambiguous width or not.
+func IsAmbiguousWidth(r rune) bool {
+	for _, iv := range ambiguous {
+		if iv.first <= r && r <= iv.last {
+			return true
+		}
+	}
+	return false
+}
+
+func StringWidth(s string) (width int) {
+	return NewCondition().StringWidth(s)
+}
+
+func Truncate(s string, w int, tail string) string {
+	return NewCondition().Truncate(s, w, tail)
 }
