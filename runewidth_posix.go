@@ -27,7 +27,7 @@ func IsEastAsian() bool {
 	charset := strings.ToLower(locale)
 	r := reLoc.FindStringSubmatch(locale)
 	if len(r) == 2 {
-		charset = r[1]
+		charset = strings.ToLower(r[1])
 	}
 
 	if strings.HasSuffix(charset, "@cjk_narrow") {
