@@ -118,7 +118,7 @@ type Condition struct {
 }
 
 func NewCondition() *Condition {
-	return &Condition {EastAsianWidth}
+	return &Condition{EastAsianWidth}
 }
 
 // RuneWidth returns the number of cells in r.

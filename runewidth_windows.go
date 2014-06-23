@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	kernel32 = syscall.NewLazyDLL("kernel32")
+	kernel32   = syscall.NewLazyDLL("kernel32")
 	procGetACP = kernel32.NewProc("GetACP")
 )
 
