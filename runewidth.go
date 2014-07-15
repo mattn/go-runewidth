@@ -1,6 +1,7 @@
 package runewidth
 
 var EastAsianWidth = IsEastAsian()
+var condition = &Condition{EastAsianWidth}
 
 type interval struct {
 	first rune
@@ -188,7 +189,8 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
 func RuneWidth(r rune) int {
-	return NewCondition().RuneWidth(r)
+	condition.EastAsianWidth = EastAsianWidth
+	return condition.RuneWidth(r)
 }
 
 // IsAmbiguousWidth returns whether is ambiguous width or not.
@@ -202,9 +204,11 @@ func IsAmbiguousWidth(r rune) bool {
 }
 
 func StringWidth(s string) (width int) {
-	return NewCondition().StringWidth(s)
+	condition.EastAsianWidth = EastAsianWidth
+	return condition.StringWidth(s)
 }
 
 func Truncate(s string, w int, tail string) string {
-	return NewCondition().Truncate(s, w, tail)
+	condition.EastAsianWidth = EastAsianWidth
+	return condition.Truncate(s, w, tail)
 }
