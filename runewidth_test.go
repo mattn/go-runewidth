@@ -20,7 +20,7 @@ var runewidthtests = []struct {
 }
 
 func TestRuneWidth(t *testing.T) {
-	c := NewCondition()
+	c := EAWCondition
 	c.EastAsianWidth = true
 	for _, tt := range runewidthtests {
 		if out := c.RuneWidth(tt.in); out != tt.out {
@@ -78,7 +78,7 @@ var stringwidthtests = []struct {
 }
 
 func TestStringWidth(t *testing.T) {
-	c := NewCondition()
+	c := EAWCondition
 	c.EastAsianWidth = true
 	for _, tt := range stringwidthtests {
 		if out := c.StringWidth(tt.in); out != tt.out {
