@@ -164,26 +164,22 @@ func (c *Condition) StringWidth(s string) (width int) {
 }
 
 func (c *Condition) Truncate(s string, w int, tail string) string {
-	i := w
 	r := []rune(s)
-	if i > len(r)-1 {
-		i = len(r) - 1
-	}
 	tw := StringWidth(tail)
 	w -= tw
-	width := StringWidth(string(r))
-	if width < w {
-		return s
-	}
-	for {
-		if i <= 0 || width <= w {
+	width := 0
+	i := 0
+	for ; i < len(r); i++ {
+		cw := RuneWidth(r[i])
+		if width + cw > w {
 			break
 		}
-		cw := RuneWidth(r[i])
-		width -= cw
-		i--
+		width += cw
 	}
-	return string(r[0:i+1]) + tail
+	if i == len(r) {
+		return string(r[0:i])
+	}
+	return string(r[0:i]) + tail
 }
 
 // RuneWidth returns the number of cells in r.
