@@ -171,7 +171,7 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	i := 0
 	for ; i < len(r); i++ {
 		cw := RuneWidth(r[i])
-		if width + cw > w {
+		if width+cw > w {
 			break
 		}
 		width += cw
