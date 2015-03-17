@@ -5,12 +5,12 @@ import (
 )
 
 var (
-	kernel32   = syscall.NewLazyDLL("kernel32")
-	procGetACP = kernel32.NewProc("GetACP")
+	kernel32               = syscall.NewLazyDLL("kernel32")
+	procGetConsoleOutputCP = kernel32.NewProc("GetConsoleOutputCP")
 )
 
 func IsEastAsian() bool {
-	r1, _, _ := procGetACP.Call()
+	r1, _, _ := procGetConsoleOutputCP.Call()
 	if r1 == 0 {
 		return false
 	}
