@@ -298,7 +298,7 @@ var ctypes = []intervalType{
 	{0x20000, 0x2FFFE, wide},
 	{0x30000, 0x3FFFE, wide},
 	{0xE0100, 0xE01F0, ambiguous},
-	{0xF0000, 0xFFFFE, ambiguous},
+	{0xF0000, 0xFFFFD, ambiguous},
 	{0x100000, 0x10FFFE, ambiguous},
 }
 
