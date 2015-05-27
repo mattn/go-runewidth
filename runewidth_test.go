@@ -111,3 +111,24 @@ func TestTruncateNoNeeded(t *testing.T) {
 		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
 	}
 }
+
+var isneutralwidthtests = []struct {
+	in  rune
+	out bool
+}{
+	{'→', false},
+	{'┊', false},
+	{'┈', false},
+	{'～', false},
+	{'└', false},
+	{'⣀', true},
+	{'⣀', true},
+}
+
+func TestIsNeutralWidth(t *testing.T) {
+	for _, tt := range isneutralwidthtests {
+		if out := IsNeutralWidth(tt.in); out != tt.out {
+			t.Errorf("IsNeutralWidth(%q) = %v, want %v", tt.in, out, tt.out)
+		}
+	}
+}
