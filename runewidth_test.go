@@ -103,6 +103,17 @@ func TestTruncate(t *testing.T) {
 	}
 }
 
+func TestWrap(t *testing.T) {
+	s := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+	expected := `あいうえおあいうえおえおおおお
+おおおおおおおおおおおおおおお
+おおおおおおおおお`
+
+	if out := Wrap(s, 30); out != expected {
+		t.Errorf("Wrap(%q) = %v, want %v", s, out, expected)
+	}
+}
+
 func TestTruncateNoNeeded(t *testing.T) {
 	s := "あいうえおあい"
 	expected := "あいうえおあい"

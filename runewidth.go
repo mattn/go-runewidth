@@ -370,6 +370,22 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	return string(r[0:i]) + tail
 }
 
+func (c *Condition) Wrap(s string, w int) string {
+	width := 0
+	out := ""
+	for _, r := range []rune(s) {
+		cw := RuneWidth(r)
+		if r == '\n' || width+cw > w {
+			out += "\n"
+			width = 0
+			continue
+		}
+		out += string(r)
+		width += cw
+	}
+	return out
+}
+
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
 func RuneWidth(r rune) int {
@@ -401,4 +417,8 @@ func StringWidth(s string) (width int) {
 
 func Truncate(s string, w int, tail string) string {
 	return DefaultCondition.Truncate(s, w, tail)
+}
+
+func Wrap(s string, w int) string {
+	return DefaultCondition.Wrap(s, w)
 }
