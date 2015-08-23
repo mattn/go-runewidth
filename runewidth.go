@@ -379,7 +379,7 @@ func (c *Condition) Wrap(s string, w int) string {
 			out += string(r)
 			width = 0
 			continue
-		}else if width+cw > w{
+		} else if width+cw > w {
 			out += "\n"
 			width = 0
 			out += string(r)
