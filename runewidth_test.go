@@ -24,7 +24,7 @@ func TestRuneWidth(t *testing.T) {
 	c.EastAsianWidth = true
 	for _, tt := range runewidthtests {
 		if out := c.RuneWidth(tt.in); out != tt.out {
-			t.Errorf("Width(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("Width(%q) = %q, want %q", tt.in, out, tt.out)
 		}
 	}
 }
@@ -64,7 +64,7 @@ var isambiguouswidthtests = []struct {
 func TestIsAmbiguousWidth(t *testing.T) {
 	for _, tt := range isambiguouswidthtests {
 		if out := IsAmbiguousWidth(tt.in); out != tt.out {
-			t.Errorf("IsAmbiguousWidth(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("IsAmbiguousWidth(%q) = %q, want %q", tt.in, out, tt.out)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func TestStringWidth(t *testing.T) {
 	c.EastAsianWidth = true
 	for _, tt := range stringwidthtests {
 		if out := c.StringWidth(tt.in); out != tt.out {
-			t.Errorf("StringWidth(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("StringWidth(%q) = %q, want %q", tt.in, out, tt.out)
 		}
 	}
 }
@@ -90,7 +90,7 @@ func TestStringWidth(t *testing.T) {
 func TestStringWidthInvalid(t *testing.T) {
 	s := "こんにちわ\x00世界"
 	if out := StringWidth(s); out != 14 {
-		t.Errorf("StringWidth(%q) = %v, want %v", s, out, 14)
+		t.Errorf("StringWidth(%q) = %q, want %q", s, out, 14)
 	}
 }
 
@@ -99,7 +99,7 @@ func TestTruncate(t *testing.T) {
 	expected := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおお..."
 
 	if out := Truncate(s, 80, "..."); out != expected {
-		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
 	}
 }
 
@@ -116,7 +116,7 @@ END`
 END`
 
 	if out := Wrap(s, 30); out != expected {
-		t.Errorf("Wrap(%q) = %v, want %v", s, out, expected)
+		t.Errorf("Wrap(%q) = %q, want %q", s, out, expected)
 	}
 }
 
@@ -125,7 +125,7 @@ func TestTruncateNoNeeded(t *testing.T) {
 	expected := "あいうえおあい"
 
 	if out := Truncate(s, 80, "..."); out != expected {
-		t.Errorf("Truncate(%q) = %v, want %v", s, out, expected)
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
 	}
 }
 
@@ -145,7 +145,25 @@ var isneutralwidthtests = []struct {
 func TestIsNeutralWidth(t *testing.T) {
 	for _, tt := range isneutralwidthtests {
 		if out := IsNeutralWidth(tt.in); out != tt.out {
-			t.Errorf("IsNeutralWidth(%q) = %v, want %v", tt.in, out, tt.out)
+			t.Errorf("IsNeutralWidth(%q) = %q, want %q", tt.in, out, tt.out)
 		}
+	}
+}
+
+func TestFillLeft(t *testing.T) {
+	s := "あxいうえお"
+	expected := "    あxいうえお"
+
+	if out := FillLeft(s, 15); out != expected {
+		t.Errorf("FillLeft(%q) = %q, want %q", s, out, expected)
+	}
+}
+
+func TestFillRight(t *testing.T) {
+	s := "あxいうえお"
+	expected := "あxいうえお    "
+
+	if out := FillRight(s, 15); out != expected {
+		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
 	}
 }
