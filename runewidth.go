@@ -367,9 +367,6 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 		}
 		width += cw
 	}
-	if i == len(r) {
-		return string(r[0:i])
-	}
 	return string(r[0:i]) + tail
 }
 
