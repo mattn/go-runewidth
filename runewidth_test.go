@@ -131,6 +131,20 @@ func TestTruncateFit(t *testing.T) {
 	}
 }
 
+func TestTruncateJustFit(t *testing.T) {
+	s := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+	expected := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+
+	out := Truncate(s, 80, "...")
+	if out != expected {
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
+	}
+	width := StringWidth(out)
+	if width != 80 {
+		t.Errorf("width of Truncate(%q) should be %d, but %d", s, 80, width)
+	}
+}
+
 func TestWrap(t *testing.T) {
 	s := `東京特許許可局局長はよく柿喰う客だ/東京特許許可局局長はよく柿喰う客だ
 123456789012345678901234567890
