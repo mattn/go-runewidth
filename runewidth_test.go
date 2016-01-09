@@ -201,11 +201,29 @@ func TestFillLeft(t *testing.T) {
 	}
 }
 
+func TestFillLeftFit(t *testing.T) {
+	s := "あいうえお"
+	expected := "あいうえお"
+
+	if out := FillLeft(s, 10); out != expected {
+		t.Errorf("FillLeft(%q) = %q, want %q", s, out, expected)
+	}
+}
+
 func TestFillRight(t *testing.T) {
 	s := "あxいうえお"
 	expected := "あxいうえお    "
 
 	if out := FillRight(s, 15); out != expected {
+		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
+	}
+}
+
+func TestFillRightFit(t *testing.T) {
+	s := "あいうえお"
+	expected := "あいうえお"
+
+	if out := FillRight(s, 10); out != expected {
 		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
 	}
 }
