@@ -352,6 +352,9 @@ func (c *Condition) StringWidth(s string) (width int) {
 }
 
 func (c *Condition) Truncate(s string, w int, tail string) string {
+	if c.StringWidth(s) <= w {
+		return s
+	}
 	r := []rune(s)
 	tw := c.StringWidth(tail)
 	w -= tw
