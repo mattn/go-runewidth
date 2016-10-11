@@ -1,8 +1,11 @@
 package runewidth
 
 var (
-	EastAsianWidth   = IsEastAsian()              // true if the current locale is CJK
-	DefaultCondition = &Condition{EastAsianWidth} // condition in current locale
+	// EastAsianWidth will be set true if the current locale is CJK
+	EastAsianWidth = IsEastAsian()
+
+	// DefaultCondition is a condition in current locale
+	DefaultCondition = &Condition{EastAsianWidth}
 )
 
 type interval struct {
@@ -304,10 +307,12 @@ var ctypes = []intervalType{
 	{0x100000, 0x10FFFE, ambiguous},
 }
 
+// Condition have flag EastAsianWidth whether the current locale is CJK or not.
 type Condition struct {
 	EastAsianWidth bool
 }
 
+// NewCondition return new instance of Condition which is current locale.
 func NewCondition() *Condition {
 	return &Condition{EastAsianWidth}
 }
