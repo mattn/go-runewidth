@@ -103,15 +103,12 @@ func TestTruncateSmaller(t *testing.T) {
 	}
 }
 
-var (
-	truncateBefore = "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
-	truncateAfter  = "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおお..."
-)
-
 func TestTruncate(t *testing.T) {
-	out := Truncate(truncateBefore, 80, "...")
-	if out != truncateAfter {
-		t.Errorf("Truncate(%q) = %q, want %q", s, out, truncateAfter)
+	s := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+	expected := "あいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおお..."
+	out := Truncate(s, 80, "...")
+	if out != expected {
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
 	}
 	width := StringWidth(out)
 	if width != 79 {
@@ -120,9 +117,12 @@ func TestTruncate(t *testing.T) {
 }
 
 func TestTruncateFit(t *testing.T) {
-	out := Truncate(truncateBefore, 80, "...")
-	if out != truncateAfter {
-		t.Errorf("Truncate(%q) = %q, want %q", s, out, truncateAfter)
+	s := "aあいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+	expected := "aあいうえおあいうえおえおおおおおおおおおおおおおおおおおおおおおおおおおおお..."
+
+	out := Truncate(s, 80, "...")
+	if out != expected {
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
 	}
 	width := StringWidth(out)
 	if width != 80 {
