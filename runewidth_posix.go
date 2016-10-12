@@ -28,7 +28,7 @@ var mblenTable = map[string]int{
 	"gb2312":  2,
 }
 
-func isEastAsian(locale string) int {
+func isEastAsian(locale string) bool {
 	charset := strings.ToLower(locale)
 	r := reLoc.FindStringSubmatch(locale)
 	if len(r) == 2 {
