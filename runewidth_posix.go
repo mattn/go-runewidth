@@ -10,6 +10,24 @@ import (
 
 var reLoc = regexp.MustCompile(`^[a-z][a-z][a-z]?(?:_[A-Z][A-Z])?\.(.+)`)
 
+var mblen_table = map[string]int{
+	"utf-8":   6,
+	"utf8":    6,
+	"jis":     8,
+	"eucjp":   3,
+	"euckr":   2,
+	"euccn":   2,
+	"sjis":    2,
+	"cp932":   2,
+	"cp51932": 2,
+	"cp936":   2,
+	"cp949":   2,
+	"cp950":   2,
+	"big5":    2,
+	"gbk":     2,
+	"gb2312":  2,
+}
+
 func isEastAsian(locale string) int {
 	charset := strings.ToLower(locale)
 	r := reLoc.FindStringSubmatch(locale)
@@ -28,23 +46,9 @@ func isEastAsian(locale string) int {
 		}
 	}
 	max := 1
-	switch charset {
-	case "utf-8", "utf8":
-		max = 6
-	case "jis":
-		max = 8
-	case "eucjp":
-		max = 3
-	case "euckr", "euccn":
-		max = 2
-	case "sjis", "cp932", "cp51932", "cp936", "cp949", "cp950":
-		max = 2
-	case "big5":
-		max = 2
-	case "gbk", "gb2312":
-		max = 2
+	if m, ok := mblen_table[charset]; ok {
+		max = m
 	}
-
 	if max > 1 && (charset[0] != 'u' ||
 		strings.HasPrefix(locale, "ja") ||
 		strings.HasPrefix(locale, "ko") ||
