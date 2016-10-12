@@ -10,7 +10,7 @@ import (
 
 var reLoc = regexp.MustCompile(`^[a-z][a-z][a-z]?(?:_[A-Z][A-Z])?\.(.+)`)
 
-var mblen_table = map[string]int{
+var mblenTable = map[string]int{
 	"utf-8":   6,
 	"utf8":    6,
 	"jis":     8,
@@ -46,7 +46,7 @@ func isEastAsian(locale string) int {
 		}
 	}
 	max := 1
-	if m, ok := mblen_table[charset]; ok {
+	if m, ok := mblenTable[charset]; ok {
 		max = m
 	}
 	if max > 1 && (charset[0] != 'u' ||
