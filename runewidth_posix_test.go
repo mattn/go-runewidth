@@ -50,8 +50,12 @@ func TestIsEastAsianLCCTYPE(t *testing.T) {
 }
 
 func TestIsEastAsianLANG(t *testing.T) {
+	lcctype := os.Getenv("LC_CTYPE")
+	defer os.Setenv("LC_CTYPE", lcctype)
 	lang := os.Getenv("LANG")
 	defer os.Setenv("LANG", lang)
+
+	os.Setenv("LC_CTYPE", "")
 
 	testcases := []struct {
 		lcctype string
