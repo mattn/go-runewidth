@@ -1,3 +1,5 @@
+// +build !windows,!js
+
 package runewidth
 
 import (
@@ -9,7 +11,7 @@ import (
 var _ sort.Interface = (*table)(nil)
 
 func init() {
-	os.Setenv("github.com/mattn/go-runewidth#isEastAsian", "")
+	os.Setenv("github.com/mattn/go-runewidth#IsEastAsian", "")
 }
 
 func (t table) Len() int {
