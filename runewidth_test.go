@@ -11,7 +11,7 @@ import (
 var _ sort.Interface = (*table)(nil)
 
 func init() {
-	os.Setenv("github.com/mattn/go-runewidth#IsEastAsian", "")
+	os.Setenv("RUNEWIDTH_EASTASIAN", "")
 }
 
 func (t table) Len() int {
