@@ -61,6 +61,7 @@ func TestIsEastAsianLANG(t *testing.T) {
 		{"C", false},
 		{"POSIX", false},
 		{"en_US.UTF-8", false},
+		{"C.UTF-8", false},
 	}
 
 	for _, tt := range testcases {
