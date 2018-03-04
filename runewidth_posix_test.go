@@ -48,3 +48,26 @@ func TestIsEastAsianLCCTYPE(t *testing.T) {
 		}
 	}
 }
+
+func TestIsEastAsianLANG(t *testing.T) {
+	lang := os.Getenv("LANG")
+	defer os.Setenv("LANG", lang)
+
+	testcases := []struct {
+		lcctype string
+		want    bool
+	}{
+		{"ja_JP.UTF-8", true},
+		{"C", false},
+		{"POSIX", false},
+		{"en_US.UTF-8", false},
+	}
+
+	for _, tt := range testcases {
+		os.Setenv("LANG", tt.lcctype)
+		got := IsEastAsian()
+		if got != tt.want {
+			t.Fatalf("IsEastAsian() for LANG=%v should be %v", tt.lcctype, tt.want)
+		}
+	}
+}
