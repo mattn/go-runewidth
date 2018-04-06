@@ -284,3 +284,14 @@ func TestFillRightFit(t *testing.T) {
 		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
 	}
 }
+
+func TestEnv(t *testing.T) {
+	old := os.Getenv("RUNEWIDTH_EASTASIAN")
+	defer os.Setenv("RUNEWIDTH_EASTASIAN", old)
+
+	os.Setenv("RUNEWIDTH_EASTASIAN", "1")
+
+	if w := RuneWidth('│'); w != 1 {
+		t.Errorf("RuneWidth('│') = %d, want %d", w, 1)
+	}
+}
