@@ -295,3 +295,30 @@ func TestEnv(t *testing.T) {
 		t.Errorf("RuneWidth('│') = %d, want %d", w, 1)
 	}
 }
+
+func TestZeroWidthJointer(t *testing.T) {
+	c := NewCondition()
+	c.ZeroWidthJoiner = true
+
+	var tests = []struct {
+		in   string
+		want int
+	}{
+		{"👩", 2},
+		{"👩‍", 2},
+		{"👩‍🍳", 2},
+		{"‍🍳", 2},
+		{"👨‍👨", 2},
+		{"👨‍👨‍👧", 2},
+		{"🏳️‍🌈", 2},
+		{"あ👩‍🍳い", 6},
+		{"あ‍🍳い", 6},
+		{"あ‍い", 4},
+	}
+
+	for _, tt := range tests {
+		if got := c.StringWidth(tt.in); got != tt.want {
+			t.Errorf("StringWidth(%q) = %d, want %d", tt.in, got, tt.want)
+		}
+	}
+}
