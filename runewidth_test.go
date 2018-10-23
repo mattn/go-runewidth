@@ -66,10 +66,30 @@ func TestTableChecksums(t *testing.T) {
 	check(neutral, 25561, "87fffca79a3a6d413d23adf1c591bdcc1ea5d906d0d466b12a76357bbbb74607")
 }
 
+func isCompact(t *testing.T, tbl table) bool {
+	for i := range tbl {
+		if tbl[i].last < tbl[i].first { // sanity check
+			t.Errorf("table invalid: %v", tbl[i])
+			return false
+		}
+		if i > 0 && tbl[i-1].last+1 >= tbl[i].first { // can be combined into one entry
+			t.Errorf("table not compact: %v %v", tbl[i-1], tbl[i])
+			return false
+		}
+	}
+	return true
+}
+
 func TestSorted(t *testing.T) {
 	for _, tbl := range tables {
 		if !sort.IsSorted(&tbl) {
-			t.Errorf("not sorted")
+			t.Errorf("table not sorted")
+		}
+		if &tbl[0] == &neutral[0] {
+			continue // TODO: compact the table "neutral"
+		}
+		if !isCompact(t, tbl) {
+			t.Errorf("table not compact")
 		}
 	}
 }
