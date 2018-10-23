@@ -46,7 +46,7 @@ func inTable(r rune, t table) bool {
 	bot := 0
 	top := len(t) - 1
 	for top >= bot {
-		mid := (bot + top) / 2
+		mid := (bot + top) >> 1
 
 		switch {
 		case t[mid].last < r:
