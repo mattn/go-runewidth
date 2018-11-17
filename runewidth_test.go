@@ -1,4 +1,4 @@
-// +build !windows,!js
+// +build !js,!appengine
 
 package runewidth
 
