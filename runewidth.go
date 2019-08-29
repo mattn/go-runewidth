@@ -2,14 +2,13 @@ package runewidth
 
 import (
 	"os"
+
+	"github.com/rivo/uniseg"
 )
 
 var (
 	// EastAsianWidth will be set true if the current locale is CJK
 	EastAsianWidth bool
-
-	// ZeroWidthJoiner is flag to set to use UTR#51 ZWJ
-	ZeroWidthJoiner bool
 
 	// DefaultCondition is a condition in current locale
 	DefaultCondition = &Condition{}
@@ -28,7 +27,6 @@ func handleEnv() {
 	}
 	// update DefaultCondition
 	DefaultCondition.EastAsianWidth = EastAsianWidth
-	DefaultCondition.ZeroWidthJoiner = ZeroWidthJoiner
 }
 
 type interval struct {
@@ -806,15 +804,13 @@ var neutral = table{
 
 // Condition have flag EastAsianWidth whether the current locale is CJK or not.
 type Condition struct {
-	EastAsianWidth  bool
-	ZeroWidthJoiner bool
+	EastAsianWidth bool
 }
 
 // NewCondition return new instance of Condition which is current locale.
 func NewCondition() *Condition {
 	return &Condition{
-		EastAsianWidth:  EastAsianWidth,
-		ZeroWidthJoiner: ZeroWidthJoiner,
+		EastAsianWidth: EastAsianWidth,
 	}
 }
 
@@ -833,35 +829,20 @@ func (c *Condition) RuneWidth(r rune) int {
 	}
 }
 
-func (c *Condition) stringWidth(s string) (width int) {
-	for _, r := range []rune(s) {
-		width += c.RuneWidth(r)
-	}
-	return width
-}
-
-func (c *Condition) stringWidthZeroJoiner(s string) (width int) {
-	r1, r2 := rune(0), rune(0)
-	for _, r := range []rune(s) {
-		if r == 0xFE0E || r == 0xFE0F {
-			continue
-		}
-		w := c.RuneWidth(r)
-		if r2 == 0x200D && inTables(r, emoji) && inTables(r1, emoji) {
-			w = 0
-		}
-		width += w
-		r1, r2 = r2, r
-	}
-	return width
-}
-
 // StringWidth return width as you can see
 func (c *Condition) StringWidth(s string) (width int) {
-	if c.ZeroWidthJoiner {
-		return c.stringWidthZeroJoiner(s)
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
+		var chWidth int
+		for _, r := range g.Runes() {
+			chWidth = RuneWidth(r)
+			if chWidth > 0 {
+				break // Our best guess at this point is to use the width of the first non-zero-width rune.
+			}
+		}
+		width += chWidth
 	}
-	return c.stringWidth(s)
+	return
 }
 
 // Truncate return string truncated with w cells

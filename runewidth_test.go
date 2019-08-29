@@ -219,7 +219,7 @@ func TestStringWidth(t *testing.T) {
 	c.EastAsianWidth = true
 	for _, tt := range stringwidthtests {
 		if out := c.StringWidth(tt.in); out != tt.eaout {
-			t.Errorf("StringWidth(%q) = %d, want %d", tt.in, out, tt.eaout)
+			t.Errorf("StringWidth(%q) = %d, want %d (EA)", tt.in, out, tt.eaout)
 		}
 	}
 }
@@ -378,7 +378,6 @@ func TestEnv(t *testing.T) {
 
 func TestZeroWidthJointer(t *testing.T) {
 	c := NewCondition()
-	c.ZeroWidthJoiner = true
 
 	var tests = []struct {
 		in   string
