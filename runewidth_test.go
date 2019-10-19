@@ -402,3 +402,21 @@ func TestZeroWidthJointer(t *testing.T) {
 		}
 	}
 }
+
+func TestEmojiRuneWidth(t *testing.T) {
+	// 1F9CD..1F9FF;W   # So    [51] STANDING PERSON..NAZAR AMULET
+	var tests = []struct {
+		in   rune
+		want int
+	}{
+		{0x1F9CD, 2},
+		{0x1F9D0, 2},
+		{0x1F9FF, 2},
+	}
+
+	for _, tt := range tests {
+		if got := RuneWidth(tt.in); got != tt.want {
+			t.Errorf("RuneWidth(%q) = %d, want %d", tt.in, got, tt.want)
+		}
+	}
+}
