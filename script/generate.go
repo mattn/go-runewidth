@@ -19,15 +19,28 @@ func generate(out io.Writer, v string, arr []rrange) {
 	fmt.Fprintf(out, "var %s = table{\n\t", v)
 	for i := 0; i < len(arr); i++ {
 		fmt.Fprintf(out, "{0x%04X, 0x%04X},", arr[i].lo, arr[i].hi)
-		if i%3 == 2 {
-			if i < len(arr)-1 {
+		if i < len(arr)-1 {
+			if i%3 == 2 {
 				fmt.Fprint(out, "\n\t")
+			} else {
+				fmt.Fprint(out, " ")
 			}
-		} else {
-			fmt.Fprint(out, " ")
 		}
 	}
 	fmt.Fprintln(out, "\n}")
+}
+
+func shapeup(p *[]rrange) {
+	arr := *p
+	for i := 0; i < len(arr)-1; i++ {
+		if arr[i].hi+1 == arr[i+1].lo {
+			lo := arr[i].lo
+			arr = append(arr[:i], arr[i+1:]...)
+			arr[i].lo = lo
+			i--
+		}
+	}
+	*p = arr
 }
 
 func eastasian(out io.Writer, in io.Reader) error {
@@ -87,46 +100,11 @@ func eastasian(out io.Writer, in io.Reader) error {
 		}
 	}
 
-	for i := 0; i < len(cmb)-1; i++ {
-		if cmb[i].hi+1 == cmb[i+1].lo {
-			lo := cmb[i].lo
-			cmb = append(cmb[:i], cmb[i+1:]...)
-			cmb[i].lo = lo
-			i--
-		}
-	}
-	for i := 0; i < len(dbl)-1; i++ {
-		if dbl[i].hi+1 == dbl[i+1].lo {
-			lo := dbl[i].lo
-			dbl = append(dbl[:i], dbl[i+1:]...)
-			dbl[i].lo = lo
-			i--
-		}
-	}
-	for i := 0; i < len(amb)-1; i++ {
-		if amb[i].hi+1 == amb[i+1].lo {
-			lo := amb[i].lo
-			amb = append(amb[:i], amb[i+1:]...)
-			amb[i].lo = lo
-			i--
-		}
-	}
-	for i := 0; i < len(na)-1; i++ {
-		if na[i].hi+1 == na[i+1].lo {
-			lo := na[i].lo
-			na = append(na[:i], na[i+1:]...)
-			na[i].lo = lo
-			i--
-		}
-	}
-	for i := 0; i < len(nu)-1; i++ {
-		if nu[i].hi+1 == nu[i+1].lo {
-			lo := nu[i].lo
-			nu = append(nu[:i], nu[i+1:]...)
-			nu[i].lo = lo
-			i--
-		}
-	}
+	shapeup(&cmb)
+	shapeup(&dbl)
+	shapeup(&amb)
+	shapeup(&na)
+	shapeup(&nu)
 
 	generate(out, "combining", cmb)
 	fmt.Fprintln(out)
