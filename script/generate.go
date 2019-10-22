@@ -101,19 +101,22 @@ func eastasian(out io.Writer, in io.Reader) error {
 	}
 
 	shapeup(&cmb)
-	shapeup(&dbl)
-	shapeup(&amb)
-	shapeup(&na)
-	shapeup(&nu)
-
 	generate(out, "combining", cmb)
 	fmt.Fprintln(out)
+
+	shapeup(&dbl)
 	generate(out, "doublewidth", dbl)
 	fmt.Fprintln(out)
+
+	shapeup(&amb)
 	generate(out, "ambiguous", amb)
 	fmt.Fprint(out)
+
+	shapeup(&na)
 	generate(out, "notassigned", na)
 	fmt.Fprintln(out)
+
+	shapeup(&nu)
 	generate(out, "neutral", nu)
 	fmt.Fprintln(out)
 
@@ -158,15 +161,8 @@ func emoji(out io.Writer, in io.Reader) error {
 			hi: r2,
 		})
 	}
-	for i := 0; i < len(arr)-1; i++ {
-		if arr[i].hi+1 == arr[i+1].lo {
-			lo := arr[i].lo
-			arr = append(arr[:i], arr[i+1:]...)
-			arr[i].lo = lo
-			i--
-		}
-	}
 
+	shapeup(&arr)
 	generate(out, "emoji", arr)
 
 	return nil
