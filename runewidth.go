@@ -127,12 +127,11 @@ func (c *Condition) stringWidthZeroJoiner(s string) (width int) {
 		w := c.RuneWidth(r)
 		if r2 == 0x200D && inTables(r, emoji) && inTables(r1, emoji) {
 			if width < w {
-				w -= width
-			} else {
-				w = 0
+				width = w
 			}
+		} else {
+			width += w
 		}
-		width += w
 		r1, r2 = r2, r
 	}
 	return width
