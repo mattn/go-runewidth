@@ -8,6 +8,8 @@ before_install:
   - go get -t -v ./...
 
 script:
+  - go generate
+  - git diff --cached --exit-code
   - ./go.test.sh
 
 after_success:
