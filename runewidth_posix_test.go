@@ -9,6 +9,25 @@ import (
 	"testing"
 )
 
+type envVars struct {
+	lang     string
+	lc_all   string
+	lc_ctype string
+}
+
+func saveEnv() envVars {
+	return envVars{
+		lang:     os.Getenv("LANG"),
+		lc_all:   os.Getenv("LC_ALL"),
+		lc_ctype: os.Getenv("LC_CTYPE"),
+	}
+}
+func restoreEnv(env *envVars) {
+	os.Setenv("LANG", env.lang)
+	os.Setenv("LC_ALL", env.lc_all)
+	os.Setenv("LC_CTYPE", env.lc_ctype)
+}
+
 func TestIsEastAsian(t *testing.T) {
 	testcases := []struct {
 		locale string
@@ -29,8 +48,9 @@ func TestIsEastAsian(t *testing.T) {
 }
 
 func TestIsEastAsianLCCTYPE(t *testing.T) {
-	lcctype := os.Getenv("LC_CTYPE")
-	defer os.Setenv("LC_CTYPE", lcctype)
+	env := saveEnv()
+	defer restoreEnv(&env)
+	os.Setenv("LC_ALL", "")
 
 	testcases := []struct {
 		lcctype string
@@ -52,11 +72,9 @@ func TestIsEastAsianLCCTYPE(t *testing.T) {
 }
 
 func TestIsEastAsianLANG(t *testing.T) {
-	lcctype := os.Getenv("LC_CTYPE")
-	defer os.Setenv("LC_CTYPE", lcctype)
-	lang := os.Getenv("LANG")
-	defer os.Setenv("LANG", lang)
-
+	env := saveEnv()
+	defer restoreEnv(&env)
+	os.Setenv("LC_ALL", "")
 	os.Setenv("LC_CTYPE", "")
 
 	testcases := []struct {
