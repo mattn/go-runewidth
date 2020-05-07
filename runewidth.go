@@ -127,19 +127,25 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	if c.StringWidth(s) <= w {
 		return s
 	}
-	r := []rune(s)
-	tw := c.StringWidth(tail)
-	w -= tw
-	width := 0
-	i := 0
-	for ; i < len(r); i++ {
-		cw := c.RuneWidth(r[i])
-		if width+cw > w {
+	w -= c.StringWidth(tail)
+	var width int
+	pos := len(s)
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
+		var chWidth int
+		for _, r := range g.Runes() {
+			chWidth = RuneWidth(r)
+			if chWidth > 0 {
+				break // See StringWidth() for details.
+			}
+		}
+		if width+chWidth > w {
+			pos, _ = g.Positions()
 			break
 		}
-		width += cw
+		width += chWidth
 	}
-	return string(r[0:i]) + tail
+	return s[:pos] + tail
 }
 
 // Wrap return string wrapped with w cells
