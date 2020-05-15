@@ -41,7 +41,7 @@ var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
 	{nonprint, "nonprint", 2143, "288904683eb225e7c4c0bd3ee481b53e8dace404ec31d443afdbc4d13729fe95"},
 	{combining, "combining", 465, "3cce13deb5e23f9f7327f2b1ef162328285a7dcf277a98302a8f7cdd43971268"},
-	{doublewidth, "doublewidth", 182440, "3d16eda8650dc2c92d6318d32f0b4a74fda5a278db2d4544b1dd65863394823c"},
+	{doublewidth, "doublewidth", 182441, "8700c1a9b8de44364695b081d017b2d7aba3220db2fd72ef150ca3e301a8abaf"},
 	{ambiguous, "ambiguous", 138739, "d05e339a10f296de6547ff3d6c5aee32f627f6555477afebd4a3b7e3cf74c9e3"},
 	{emoji, "emoji", 3535, "9ec17351601d49c535658de8d129c1d0ccda2e620669fc39a2faaee7dedcef6d"},
 	{notassigned, "notassigned", 10, "68441e98eca1450efbe857ac051fcc872eed347054dfd0bc662d1c4ee021d69f"},
