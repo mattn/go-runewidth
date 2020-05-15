@@ -112,7 +112,7 @@ func (c *Condition) StringWidth(s string) (width int) {
 	for g.Next() {
 		var chWidth int
 		for _, r := range g.Runes() {
-			chWidth = RuneWidth(r)
+			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // Our best guess at this point is to use the width of the first non-zero-width rune.
 			}
@@ -134,7 +134,7 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	for g.Next() {
 		var chWidth int
 		for _, r := range g.Runes() {
-			chWidth = RuneWidth(r)
+			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // See StringWidth() for details.
 			}
@@ -153,7 +153,7 @@ func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	out := ""
 	for _, r := range []rune(s) {
-		cw := RuneWidth(r)
+		cw := c.RuneWidth(r)
 		if r == '\n' {
 			out += string(r)
 			width = 0
