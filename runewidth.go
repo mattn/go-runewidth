@@ -101,7 +101,19 @@ func NewCondition() *Condition {
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
 	switch {
-	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining, notassigned):
+	case r < 0 || r > 0x10FFFF:
+		return 0
+	// Fast path
+	case r < 0x0300: // neither combining, non-assigned or double-width
+		switch {
+		case r <= 0x001F || (0x007F <= r && r <= 0x009F) || r == 0x00AD: // non-printable
+			return 0
+		case c.EastAsianWidth && IsAmbiguousWidth(r):
+			return 2
+		default:
+			return 1
+		}
+	case inTables(r, nonprint, combining, notassigned):
 		return 0
 	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
 		return 2
