@@ -92,12 +92,10 @@ func eastasian(out io.Writer, in io.Reader) error {
 				hi: r2,
 			})
 		case "Na":
-			if r1 > 0xFF {
-				na = append(na, rrange{
-					lo: r1,
-					hi: r2,
-				})
-			}
+			na = append(na, rrange{
+				lo: r1,
+				hi: r2,
+			})
 		case "N":
 			nu = append(nu, rrange{
 				lo: r1,
