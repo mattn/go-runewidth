@@ -164,6 +164,7 @@ var runewidthtests = []struct {
 	{'\u0300', 0, 0},
 	{'\u2028', 0, 0},
 	{'\u2029', 0, 0},
+	{'⟦', 1, 1}, // non-ASCII classified as "na" (narrow)
 }
 
 func TestRuneWidth(t *testing.T) {

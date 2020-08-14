@@ -101,8 +101,10 @@ func NewCondition() *Condition {
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
 	switch {
-	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining, narrow):
+	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining):
 		return 0
+	case inTables(r, narrow):
+		return 1
 	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
 		return 2
 	default:
