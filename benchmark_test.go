@@ -7,6 +7,79 @@ import (
 
 var benchSink int
 
+//
+// RuneWidth
+//
+
+func benchRuneWidth(b *testing.B, eastAsianWidth bool, start, stop rune, want int) int {
+	n := 0
+	got := -1
+	c := NewCondition()
+	c.EastAsianWidth = eastAsianWidth
+	for i := 0; i < b.N; i++ {
+		got = n
+		for r := start; r < stop; r++ {
+			n += c.RuneWidth(r)
+		}
+		got = n - got
+	}
+	if want != 0 && got != want { // some extra checks
+		b.Errorf("got %d, want %d\n", got, want)
+	}
+	return n
+}
+func BenchmarkRuneWidthAll(b *testing.B) {
+	benchSink = benchRuneWidth(b, false, 0, utf8.MaxRune+1, 1293932)
+}
+func BenchmarkRuneWidth768(b *testing.B) {
+	benchSink = benchRuneWidth(b, false, 0, 0x300, 702)
+}
+func BenchmarkRuneWidthAllEastAsian(b *testing.B) {
+	benchSink = benchRuneWidth(b, true, 0, utf8.MaxRune+1, 1432558)
+}
+func BenchmarkRuneWidth768EastAsian(b *testing.B) {
+	benchSink = benchRuneWidth(b, true, 0, 0x300, 794)
+}
+
+//
+// String1Width - strings which consist of a single rune
+//
+
+func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want int) int {
+	n := 0
+	got := -1
+	c := NewCondition()
+	c.EastAsianWidth = eastAsianWidth
+	for i := 0; i < b.N; i++ {
+		got = n
+		for r := start; r < stop; r++ {
+			s := string(r)
+			n += c.StringWidth(s)
+		}
+		got = n - got
+	}
+	if want != 0 && got != want { // some extra checks
+		b.Errorf("got %d, want %d\n", got, want)
+	}
+	return n
+}
+func BenchmarkString1WidthAll(b *testing.B) {
+	benchSink = benchString1Width(b, false, 0, utf8.MaxRune+1, 1295980)
+}
+func BenchmarkString1Width768(b *testing.B) {
+	benchSink = benchString1Width(b, false, 0, 0x300, 702)
+}
+func BenchmarkString1WidthAllEastAsian(b *testing.B) {
+	benchSink = benchString1Width(b, true, 0, utf8.MaxRune+1, 1436654)
+}
+func BenchmarkString1Width768EastAsian(b *testing.B) {
+	benchSink = benchString1Width(b, true, 0, 0x300, 794)
+}
+
+//
+// tables
+//
+
 func benchTable(b *testing.B, tbl table) int {
 	n := 0
 	for i := 0; i < b.N; i++ {
