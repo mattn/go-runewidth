@@ -65,6 +65,31 @@ func TestTableChecksums(t *testing.T) {
 	}
 }
 
+func TestRuneWidthChecksums(t *testing.T) {
+	var testcases = []struct {
+		name           string
+		eastAsianWidth bool
+		wantSHA        string
+	}{
+		{"ea-no", false, "88a092b8ab7cddcf189f30d96c4b0d747fdef52d1ee8bcb6de0adbe5ff2a9fe6"},
+		{"ea-yes", true, "e4ecd64af7fcc27369a7f128a0e7fdab7940fb293ad772713d3db757c4592662"},
+	}
+
+	for _, testcase := range testcases {
+		c := NewCondition()
+		c.EastAsianWidth = testcase.eastAsianWidth
+		buf := make([]byte, utf8.MaxRune+1)
+		for r := rune(0); r <= utf8.MaxRune; r++ {
+			buf[r] = byte(c.RuneWidth(r))
+		}
+		gotSHA := fmt.Sprintf("%x", sha256.Sum256(buf))
+		if gotSHA != testcase.wantSHA {
+			t.Errorf("TestRuneWidthChecksums = %s,\n\tsha256 = %s want %s",
+				testcase.name, gotSHA, testcase.wantSHA)
+		}
+	}
+}
+
 func checkInterval(first, last rune) bool {
 	return first >= 0 && first <= utf8.MaxRune &&
 		last >= 0 && last <= utf8.MaxRune &&
