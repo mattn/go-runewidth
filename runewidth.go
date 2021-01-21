@@ -96,13 +96,31 @@ func NewCondition() *Condition {
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
-	switch {
-	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining, notassigned):
-		return 0
-	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
-		return 2
-	default:
-		return 1
+	// optimized version, verified by TestRuneWidthChecksums()
+	if !c.EastAsianWidth {
+		switch {
+		case r < 0x20 || r > 0x10FFFF:
+			return 0
+		case (r >= 0x7F && r <= 0x9F) || r == 0xAD: // nonprint
+			return 0
+		case r < 0x300:
+			return 1
+		case inTables(r, nonprint, combining, notassigned):
+			return 0
+		case inTable(r, doublewidth):
+			return 2
+		default:
+			return 1
+		}
+	} else {
+		switch {
+		case r < 0x20 || r > 0x10FFFF || inTables(r, nonprint, combining, notassigned):
+			return 0
+		case inTables(r, private, ambiguous, doublewidth):
+			return 2
+		default:
+			return 1
+		}
 	}
 }
 
