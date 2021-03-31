@@ -37,8 +37,8 @@ func BenchmarkTableAmbiguous(b *testing.B) {
 func BenchmarkTableEmoji(b *testing.B) {
 	benchSink = benchTable(b, emoji)
 }
-func BenchmarkTableNotassigned(b *testing.B) {
-	benchSink = benchTable(b, notassigned)
+func BenchmarkTableNarrow(b *testing.B) {
+	benchSink = benchTable(b, narrow)
 }
 func BenchmarkTableNeutral(b *testing.B) {
 	benchSink = benchTable(b, neutral)
