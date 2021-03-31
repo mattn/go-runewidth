@@ -65,6 +65,31 @@ func TestTableChecksums(t *testing.T) {
 	}
 }
 
+func TestRuneWidthChecksums(t *testing.T) {
+	var testcases = []struct {
+		name           string
+		eastAsianWidth bool
+		wantSHA        string
+	}{
+		{"ea-no", false, "4eb632b105d3b2c800dda9141381d0b8a95250a3a5c7f1a5ca2c4d4daaa85234"},
+		{"ea-yes", true, "c2ddc3bdf42d81d4c23050e21eda46eb639b38b15322d35e8eb6c26f3b83ce92"},
+	}
+
+	for _, testcase := range testcases {
+		c := NewCondition()
+		c.EastAsianWidth = testcase.eastAsianWidth
+		buf := make([]byte, utf8.MaxRune+1)
+		for r := rune(0); r <= utf8.MaxRune; r++ {
+			buf[r] = byte(c.RuneWidth(r))
+		}
+		gotSHA := fmt.Sprintf("%x", sha256.Sum256(buf))
+		if gotSHA != testcase.wantSHA {
+			t.Errorf("TestRuneWidthChecksums = %s,\n\tsha256 = %s want %s",
+				testcase.name, gotSHA, testcase.wantSHA)
+		}
+	}
+}
+
 func checkInterval(first, last rune) bool {
 	return first >= 0 && first <= utf8.MaxRune &&
 		last >= 0 && last <= utf8.MaxRune &&
@@ -87,41 +112,6 @@ func isCompact(t *testing.T, ti *tableInfo) bool {
 	return true
 }
 
-// This is a utility function in case that a table has changed.
-func printCompactTable(tbl table) {
-	counter := 0
-	printEntry := func(first, last rune) {
-		if counter%3 == 0 {
-			fmt.Printf("\t")
-		}
-		fmt.Printf("{0x%04X, 0x%04X},", first, last)
-		if (counter+1)%3 == 0 {
-			fmt.Printf("\n")
-		} else {
-			fmt.Printf(" ")
-		}
-		counter++
-	}
-
-	sort.Sort(&tbl) // just in case
-	first := rune(-1)
-	for i := range tbl {
-		e := tbl[i]
-		if !checkInterval(e.first, e.last) { // sanity check
-			panic("invalid table")
-		}
-		if first < 0 {
-			first = e.first
-		}
-		if i+1 < len(tbl) && e.last+1 >= tbl[i+1].first { // can be combined into one entry
-			continue
-		}
-		printEntry(first, e.last)
-		first = -1
-	}
-	fmt.Printf("\n\n")
-}
-
 func TestSorted(t *testing.T) {
 	for _, ti := range tables {
 		if !sort.IsSorted(&ti.tbl) {
@@ -129,43 +119,44 @@ func TestSorted(t *testing.T) {
 		}
 		if !isCompact(t, &ti) {
 			t.Errorf("table not compact: %s", ti.name)
-			//printCompactTable(ti.tbl)
 		}
 	}
 }
 
 var runewidthtests = []struct {
-	in    rune
-	out   int
-	eaout int
+	in     rune
+	out    int
+	eaout  int
+	nseout int
 }{
-	{'世', 2, 2},
-	{'界', 2, 2},
-	{'ｾ', 1, 1},
-	{'ｶ', 1, 1},
-	{'ｲ', 1, 1},
-	{'☆', 1, 2}, // double width in ambiguous
-	{'☺', 1, 1},
-	{'☻', 1, 1},
-	{'♥', 1, 2},
-	{'♦', 1, 1},
-	{'♣', 1, 2},
-	{'♠', 1, 2},
-	{'♂', 1, 2},
-	{'♀', 1, 2},
-	{'♪', 1, 2},
-	{'♫', 1, 1},
-	{'☼', 1, 1},
-	{'↕', 1, 2},
-	{'‼', 1, 1},
-	{'↔', 1, 2},
-	{'\x00', 0, 0},
-	{'\x01', 0, 0},
-	{'\u0300', 0, 0},
-	{'\u2028', 0, 0},
-	{'\u2029', 0, 0},
-	{'a', 1, 1}, // ASCII classified as "na" (narrow)
-	{'⟦', 1, 1}, // non-ASCII classified as "na" (narrow)
+	{'世', 2, 2, 2},
+	{'界', 2, 2, 2},
+	{'ｾ', 1, 1, 1},
+	{'ｶ', 1, 1, 1},
+	{'ｲ', 1, 1, 1},
+	{'☆', 1, 2, 2}, // double width in ambiguous
+	{'☺', 1, 1, 2},
+	{'☻', 1, 1, 2},
+	{'♥', 1, 2, 2},
+	{'♦', 1, 1, 2},
+	{'♣', 1, 2, 2},
+	{'♠', 1, 2, 2},
+	{'♂', 1, 2, 2},
+	{'♀', 1, 2, 2},
+	{'♪', 1, 2, 2},
+	{'♫', 1, 1, 2},
+	{'☼', 1, 1, 2},
+	{'↕', 1, 2, 2},
+	{'‼', 1, 1, 2},
+	{'↔', 1, 2, 2},
+	{'\x00', 0, 0, 0},
+	{'\x01', 0, 0, 0},
+	{'\u0300', 0, 0, 0},
+	{'\u2028', 0, 0, 0},
+	{'\u2029', 0, 0, 0},
+	{'a', 1, 1, 1}, // ASCII classified as "na" (narrow)
+	{'⟦', 1, 1, 1}, // non-ASCII classified as "na" (narrow)
+	{'👁', 1, 1, 2},
 }
 
 func TestRuneWidth(t *testing.T) {
@@ -173,13 +164,19 @@ func TestRuneWidth(t *testing.T) {
 	c.EastAsianWidth = false
 	for _, tt := range runewidthtests {
 		if out := c.RuneWidth(tt.in); out != tt.out {
-			t.Errorf("RuneWidth(%q) = %d, want %d", tt.in, out, tt.out)
+			t.Errorf("RuneWidth(%q) = %d, want %d (EastAsianWidth=false)", tt.in, out, tt.out)
 		}
 	}
 	c.EastAsianWidth = true
 	for _, tt := range runewidthtests {
 		if out := c.RuneWidth(tt.in); out != tt.eaout {
-			t.Errorf("RuneWidth(%q) = %d, want %d", tt.in, out, tt.eaout)
+			t.Errorf("RuneWidth(%q) = %d, want %d (EastAsianWidth=true)", tt.in, out, tt.eaout)
+		}
+	}
+	c.StrictEmojiNeutral = false
+	for _, tt := range runewidthtests {
+		if out := c.RuneWidth(tt.in); out != tt.nseout {
+			t.Errorf("RuneWidth(%q) = %d, want %d (StrictEmojiNeutral=false)", tt.in, out, tt.eaout)
 		}
 	}
 }
