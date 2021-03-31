@@ -44,7 +44,7 @@ var tables = []tableInfo{
 	{doublewidth, "doublewidth", 182440, "3d16eda8650dc2c92d6318d32f0b4a74fda5a278db2d4544b1dd65863394823c"},
 	{ambiguous, "ambiguous", 138739, "d05e339a10f296de6547ff3d6c5aee32f627f6555477afebd4a3b7e3cf74c9e3"},
 	{emoji, "emoji", 3535, "9ec17351601d49c535658de8d129c1d0ccda2e620669fc39a2faaee7dedcef6d"},
-	{notassigned, "notassigned", 10, "68441e98eca1450efbe857ac051fcc872eed347054dfd0bc662d1c4ee021d69f"},
+	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
 	{neutral, "neutral", 27333, "5455f5e75c307f70b4e9b2384dc5a8bcd91a4c5e2b24b2b185dfad4d860ee5c2"},
 }
 
@@ -71,8 +71,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "88a092b8ab7cddcf189f30d96c4b0d747fdef52d1ee8bcb6de0adbe5ff2a9fe6"},
-		{"ea-yes", true, "e4ecd64af7fcc27369a7f128a0e7fdab7940fb293ad772713d3db757c4592662"},
+		{"ea-no", false, "4eb632b105d3b2c800dda9141381d0b8a95250a3a5c7f1a5ca2c4d4daaa85234"},
+		{"ea-yes", true, "c2ddc3bdf42d81d4c23050e21eda46eb639b38b15322d35e8eb6c26f3b83ce92"},
 	}
 
 	for _, testcase := range testcases {
@@ -153,6 +153,8 @@ var runewidthtests = []struct {
 	{'\u0300', 0, 0},
 	{'\u2028', 0, 0},
 	{'\u2029', 0, 0},
+	{'a', 1, 1}, // ASCII classified as "na" (narrow)
+	{'⟦', 1, 1}, // non-ASCII classified as "na" (narrow)
 }
 
 func TestRuneWidth(t *testing.T) {
