@@ -101,7 +101,7 @@ func (c *Condition) RuneWidth(r rune) int {
 		return 0
 	case inTables(r, narrow):
 		return 1
-	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
+	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth, neutral):
 		return 2
 	default:
 		return 1
