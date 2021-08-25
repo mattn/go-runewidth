@@ -1,3 +1,4 @@
+//go:build !js && !appengine
 // +build !js,!appengine
 
 package runewidth
@@ -87,7 +88,56 @@ func TestRuneWidthChecksums(t *testing.T) {
 			t.Errorf("TestRuneWidthChecksums = %s,\n\tsha256 = %s want %s",
 				testcase.name, gotSHA, testcase.wantSHA)
 		}
+
+		// Test with LUT
+		c.CreateLUT()
+		for r := rune(0); r <= utf8.MaxRune; r++ {
+			buf[r] = byte(c.RuneWidth(r))
+		}
+		gotSHA = fmt.Sprintf("%x", sha256.Sum256(buf))
+		if gotSHA != testcase.wantSHA {
+			t.Errorf("TestRuneWidthChecksums = %s,\n\tsha256 = %s want %s",
+				testcase.name, gotSHA, testcase.wantSHA)
+		}
 	}
+}
+
+func TestDefaultLUT(t *testing.T) {
+	var testcases = []struct {
+		name           string
+		eastAsianWidth bool
+		wantSHA        string
+	}{
+		{"ea-no", false, "4eb632b105d3b2c800dda9141381d0b8a95250a3a5c7f1a5ca2c4d4daaa85234"},
+		{"ea-yes", true, "c2ddc3bdf42d81d4c23050e21eda46eb639b38b15322d35e8eb6c26f3b83ce92"},
+	}
+
+	old := os.Getenv("RUNEWIDTH_EASTASIAN")
+	defer os.Setenv("RUNEWIDTH_EASTASIAN", old)
+
+	CreateLUT()
+	for _, testcase := range testcases {
+		c := DefaultCondition
+
+		if testcase.eastAsianWidth {
+			os.Setenv("RUNEWIDTH_EASTASIAN", "1")
+		} else {
+			os.Setenv("RUNEWIDTH_EASTASIAN", "0")
+		}
+		handleEnv()
+
+		buf := make([]byte, utf8.MaxRune+1)
+		for r := rune(0); r <= utf8.MaxRune; r++ {
+			buf[r] = byte(c.RuneWidth(r))
+		}
+		gotSHA := fmt.Sprintf("%x", sha256.Sum256(buf))
+		if gotSHA != testcase.wantSHA {
+			t.Errorf("TestRuneWidthChecksums = %s,\n\tsha256 = %s want %s",
+				testcase.name, gotSHA, testcase.wantSHA)
+		}
+	}
+	// Remove for other tests.
+	DefaultCondition.combinedLut = nil
 }
 
 func checkInterval(first, last rune) bool {

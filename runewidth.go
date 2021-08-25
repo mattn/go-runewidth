@@ -34,7 +34,13 @@ func handleEnv() {
 		EastAsianWidth = env == "1"
 	}
 	// update DefaultCondition
-	DefaultCondition.EastAsianWidth = EastAsianWidth
+	if DefaultCondition.EastAsianWidth != EastAsianWidth {
+		DefaultCondition.EastAsianWidth = EastAsianWidth
+		if len(DefaultCondition.combinedLut) > 0 {
+			DefaultCondition.combinedLut = DefaultCondition.combinedLut[:0]
+			CreateLUT()
+		}
+	}
 }
 
 type interval struct {
