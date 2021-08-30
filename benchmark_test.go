@@ -14,19 +14,42 @@ var benchSink int
 func benchRuneWidth(b *testing.B, eastAsianWidth bool, start, stop rune, want int) int {
 	b.Helper()
 	n := 0
-	got := -1
-	c := NewCondition()
-	c.EastAsianWidth = eastAsianWidth
-	for i := 0; i < b.N; i++ {
-		got = n
-		for r := start; r < stop; r++ {
-			n += c.RuneWidth(r)
+	b.Run("regular", func(b *testing.B) {
+		got := -1
+		c := NewCondition()
+		c.EastAsianWidth = eastAsianWidth
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			got = n
+			for r := start; r < stop; r++ {
+				n += c.RuneWidth(r)
+			}
+			got = n - got
 		}
-		got = n - got
-	}
-	if want != 0 && got != want { // some extra checks
-		b.Errorf("got %d, want %d\n", got, want)
-	}
+		if want != 0 && got != want { // some extra checks
+			b.Errorf("got %d, want %d\n", got, want)
+		}
+	})
+	b.Run("lut", func(b *testing.B) {
+		got := -1
+		n = 0
+		c := NewCondition()
+		c.EastAsianWidth = eastAsianWidth
+		c.CreateLUT()
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			got = n
+			for r := start; r < stop; r++ {
+				n += c.RuneWidth(r)
+			}
+			got = n - got
+		}
+		if want != 0 && got != want { // some extra checks
+			b.Errorf("got %d, want %d\n", got, want)
+		}
+	})
 	return n
 }
 func BenchmarkRuneWidthAll(b *testing.B) {
@@ -49,20 +72,44 @@ func BenchmarkRuneWidth768EastAsian(b *testing.B) {
 func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want int) int {
 	b.Helper()
 	n := 0
-	got := -1
-	c := NewCondition()
-	c.EastAsianWidth = eastAsianWidth
-	for i := 0; i < b.N; i++ {
-		got = n
-		for r := start; r < stop; r++ {
-			s := string(r)
-			n += c.StringWidth(s)
+	b.Run("regular", func(b *testing.B) {
+		got := -1
+		c := NewCondition()
+		c.EastAsianWidth = eastAsianWidth
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			got = n
+			for r := start; r < stop; r++ {
+				s := string(r)
+				n += c.StringWidth(s)
+			}
+			got = n - got
 		}
-		got = n - got
-	}
-	if want != 0 && got != want { // some extra checks
-		b.Errorf("got %d, want %d\n", got, want)
-	}
+		if want != 0 && got != want { // some extra checks
+			b.Errorf("got %d, want %d\n", got, want)
+		}
+	})
+	b.Run("lut", func(b *testing.B) {
+		got := -1
+		n = 0
+		c := NewCondition()
+		c.EastAsianWidth = eastAsianWidth
+		c.CreateLUT()
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			got = n
+			for r := start; r < stop; r++ {
+				s := string(r)
+				n += c.StringWidth(s)
+			}
+			got = n - got
+		}
+		if want != 0 && got != want { // some extra checks
+			b.Errorf("got %d, want %d\n", got, want)
+		}
+	})
 	return n
 }
 func BenchmarkString1WidthAll(b *testing.B) {

@@ -34,7 +34,13 @@ func handleEnv() {
 		EastAsianWidth = env == "1"
 	}
 	// update DefaultCondition
-	DefaultCondition.EastAsianWidth = EastAsianWidth
+	if DefaultCondition.EastAsianWidth != EastAsianWidth {
+		DefaultCondition.EastAsianWidth = EastAsianWidth
+		if len(DefaultCondition.combinedLut) > 0 {
+			DefaultCondition.combinedLut = DefaultCondition.combinedLut[:0]
+			CreateLUT()
+		}
+	}
 }
 
 type interval struct {
@@ -89,6 +95,7 @@ var nonprint = table{
 
 // Condition have flag EastAsianWidth whether the current locale is CJK or not.
 type Condition struct {
+	combinedLut        []byte
 	EastAsianWidth     bool
 	StrictEmojiNeutral bool
 }
@@ -104,10 +111,16 @@ func NewCondition() *Condition {
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
+	if r < 0 || r > 0x10FFFF {
+		return 0
+	}
+	if len(c.combinedLut) > 0 {
+		return int(c.combinedLut[r>>1]>>(uint(r&1)*4)) & 3
+	}
 	// optimized version, verified by TestRuneWidthChecksums()
 	if !c.EastAsianWidth {
 		switch {
-		case r < 0x20 || r > 0x10FFFF:
+		case r < 0x20:
 			return 0
 		case (r >= 0x7F && r <= 0x9F) || r == 0xAD: // nonprint
 			return 0
@@ -124,7 +137,7 @@ func (c *Condition) RuneWidth(r rune) int {
 		}
 	} else {
 		switch {
-		case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining):
+		case inTables(r, nonprint, combining):
 			return 0
 		case inTable(r, narrow):
 			return 1
@@ -136,6 +149,27 @@ func (c *Condition) RuneWidth(r rune) int {
 			return 1
 		}
 	}
+}
+
+// CreateLUT will create an in-memory lookup table of 557056 bytes for faster operation.
+// This should not be called concurrently with other operations on c.
+// If options in c is changed, CreateLUT should be called again.
+func (c *Condition) CreateLUT() {
+	const max = 0x110000
+	lut := c.combinedLut
+	if len(c.combinedLut) != 0 {
+		// Remove so we don't use it.
+		c.combinedLut = nil
+	} else {
+		lut = make([]byte, max/2)
+	}
+	for i := range lut {
+		i32 := int32(i * 2)
+		x0 := c.RuneWidth(i32)
+		x1 := c.RuneWidth(i32 + 1)
+		lut[i] = uint8(x0) | uint8(x1)<<4
+	}
+	c.combinedLut = lut
 }
 
 // StringWidth return width as you can see
@@ -270,4 +304,13 @@ func FillLeft(s string, w int) string {
 // FillRight return string filled in left by spaces in w cells
 func FillRight(s string, w int) string {
 	return DefaultCondition.FillRight(s, w)
+}
+
+// CreateLUT will create an in-memory lookup table of 557055 bytes for faster operation.
+// This should not be called concurrently with other operations.
+func CreateLUT() {
+	if len(DefaultCondition.combinedLut) > 0 {
+		return
+	}
+	DefaultCondition.CreateLUT()
 }
