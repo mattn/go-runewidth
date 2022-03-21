@@ -218,7 +218,7 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	out := ""
-	for _, r := range []rune(s) {
+	for _, r := range s {
 		cw := c.RuneWidth(r)
 		if r == '\n' {
 			out += string(r)
