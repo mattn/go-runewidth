@@ -9,22 +9,22 @@ import (
 )
 
 type envVars struct {
-	lang     string
-	lc_all   string
-	lc_ctype string
+	lang    string
+	lcall   string
+	lcctype string
 }
 
 func saveEnv() envVars {
 	return envVars{
-		lang:     os.Getenv("LANG"),
-		lc_all:   os.Getenv("LC_ALL"),
-		lc_ctype: os.Getenv("LC_CTYPE"),
+		lang:    os.Getenv("LANG"),
+		lcall:   os.Getenv("LC_ALL"),
+		lcctype: os.Getenv("LC_CTYPE"),
 	}
 }
 func restoreEnv(env *envVars) {
 	os.Setenv("LANG", env.lang)
-	os.Setenv("LC_ALL", env.lc_all)
-	os.Setenv("LC_CTYPE", env.lc_ctype)
+	os.Setenv("LC_ALL", env.lcall)
+	os.Setenv("LC_CTYPE", env.lcctype)
 }
 
 func TestIsEastAsian(t *testing.T) {
