@@ -174,10 +174,12 @@ func (c *Condition) CreateLUT() {
 
 // StringWidth return width as you can see
 func (c *Condition) StringWidth(s string) (width int) {
-	g := uniseg.NewGraphemes(s)
-	for g.Next() {
+	state := -1
+	var cl string
+	for len(s) > 0 {
 		var chWidth int
-		for _, r := range g.Runes() {
+		cl, s, state = uniseg.FirstGraphemeClusterInString(s, state)
+		for _, r := range cl {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // Our best guess at this point is to use the width of the first non-zero-width rune.
@@ -194,22 +196,25 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 		return s
 	}
 	w -= c.StringWidth(tail)
-	var width int
-	pos := len(s)
-	g := uniseg.NewGraphemes(s)
-	for g.Next() {
-		var chWidth int
-		for _, r := range g.Runes() {
+	var width, pos int
+	substr, state := s, -1
+	for len(substr) > 0 {
+		var (
+			ch      string
+			chWidth int
+		)
+		ch, substr, state = uniseg.FirstGraphemeClusterInString(substr, state)
+		for _, r := range ch {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // See StringWidth() for details.
 			}
 		}
 		if width+chWidth > w {
-			pos, _ = g.Positions()
 			break
 		}
 		width += chWidth
+		pos += len(ch)
 	}
 	return s[:pos] + tail
 }
