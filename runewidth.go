@@ -178,7 +178,7 @@ func (c *Condition) StringWidth(s string) (width int) {
 	var cl string
 	for len(s) > 0 {
 		var chWidth int
-		cl, s, state = uniseg.FirstGraphemeClusterInString(s, state)
+		cl, s, _, state = uniseg.FirstGraphemeClusterInString(s, state)
 		for _, r := range cl {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
@@ -203,7 +203,7 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 			ch      string
 			chWidth int
 		)
-		ch, substr, state = uniseg.FirstGraphemeClusterInString(substr, state)
+		ch, substr, _, state = uniseg.FirstGraphemeClusterInString(substr, state)
 		for _, r := range ch {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
