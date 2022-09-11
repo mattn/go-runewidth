@@ -380,6 +380,15 @@ func TestTruncateNoNeeded(t *testing.T) {
 	}
 }
 
+func TestTruncateEmoji(t *testing.T) {
+	s := "😂😡"
+	expected := "😂"
+
+	if out := Truncate(s, 2, ""); out != expected {
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
+	}
+}
+
 var isneutralwidthtests = []struct {
 	in  rune
 	out bool
