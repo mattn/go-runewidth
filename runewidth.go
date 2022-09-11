@@ -179,11 +179,12 @@ func (c *Condition) StringWidth(s string) (width int) {
 	for len(s) > 0 {
 		var chWidth int
 		cl, s, _, state = uniseg.FirstGraphemeClusterInString(s, state)
-		for _, r := range cl {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // Our best guess at this point is to use the width of the first non-zero-width rune.
+		for index, r := range cl {
+			if index == 0 && inTable(r, emoji) {
+				chWidth = 2 // Not the optimal solution but it will work in most cases.
+				break
 			}
+			chWidth += c.RuneWidth(r)
 		}
 		width += chWidth
 	}
@@ -204,11 +205,12 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 			chWidth int
 		)
 		ch, substr, _, state = uniseg.FirstGraphemeClusterInString(substr, state)
-		for _, r := range ch {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // See StringWidth() for details.
+		for index, r := range ch {
+			if index == 0 && inTable(r, emoji) {
+				chWidth = 2 // Not the optimal solution but it will work in most cases.
+				break
 			}
+			chWidth += c.RuneWidth(r)
 		}
 		if width+chWidth > w {
 			break
