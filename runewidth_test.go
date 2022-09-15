@@ -394,7 +394,7 @@ func Test_TrimPrefix(t *testing.T) {
 		}
 	})
 
-	t.Run("ascii: with tail", func(t *testing.T) {
+	t.Run("ascii: with prefix", func(t *testing.T) {
 		t.Parallel()
 		s := "source"
 		expected := "...ce"
@@ -416,7 +416,7 @@ func Test_TrimPrefix(t *testing.T) {
 		}
 	})
 
-	t.Run("non ascii: with tail", func(t *testing.T) {
+	t.Run("non ascii: with prefix", func(t *testing.T) {
 		t.Parallel()
 		s := "あいうえお"
 		expected := "...えお"
@@ -438,7 +438,7 @@ func Test_TrimPrefix(t *testing.T) {
 		}
 	})
 
-	t.Run("trim all: with tail", func(t *testing.T) {
+	t.Run("trim all: with prefix", func(t *testing.T) {
 		t.Parallel()
 		s := "あいうえお"
 		expected := "..."
