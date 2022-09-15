@@ -214,6 +214,35 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	return s[:pos] + tail
 }
 
+// TrimPrefix cuts w cells from the beginning of the `s`.
+func (c *Condition) TrimPrefix(s string, w int, tail string) string {
+	if c.StringWidth(s) <= w {
+		return "" + tail
+	}
+
+	var width int
+	pos := len(s)
+
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
+		var chWidth int
+		for _, r := range g.Runes() {
+			chWidth = c.RuneWidth(r)
+			if chWidth > 0 {
+				break // See StringWidth() for details.
+			}
+		}
+		if width+chWidth > w {
+			pos, _ = g.Positions()
+
+			break
+		}
+		width += chWidth
+	}
+
+	return s[pos:] + tail
+}
+
 // Wrap return string wrapped with w cells
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
@@ -289,6 +318,11 @@ func StringWidth(s string) (width int) {
 // Truncate return string truncated with w cells
 func Truncate(s string, w int, tail string) string {
 	return DefaultCondition.Truncate(s, w, tail)
+}
+
+// TrimPrefix cuts w cells from the beginning of the `s`.
+func TrimPrefix(s string, w int, tail string) string {
+	return DefaultCondition.TrimPrefix(s, w, tail)
 }
 
 // Wrap return string wrapped with w cells

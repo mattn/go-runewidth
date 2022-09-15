@@ -380,6 +380,76 @@ func TestTruncateNoNeeded(t *testing.T) {
 	}
 }
 
+func Test_TrimPrefix(t *testing.T) {
+	t.Parallel()
+
+	t.Run("ascii", func(t *testing.T) {
+		t.Parallel()
+		s := "source"
+		expected := "ce"
+
+		out := TrimPrefix(s, 4, "")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+
+	t.Run("ascii: with tail", func(t *testing.T) {
+		t.Parallel()
+		s := "source"
+		expected := "ce..."
+
+		out := TrimPrefix(s, 4, "...")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+
+	t.Run("non ascii", func(t *testing.T) {
+		t.Parallel()
+		s := "あいうえお"
+		expected := "えお"
+
+		out := TrimPrefix(s, 6, "")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+
+	t.Run("non ascii: with tail", func(t *testing.T) {
+		t.Parallel()
+		s := "あいうえお"
+		expected := "えお..."
+
+		out := TrimPrefix(s, 6, "...")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+
+	t.Run("trim all", func(t *testing.T) {
+		t.Parallel()
+		s := "あいうえお"
+		expected := ""
+
+		out := TrimPrefix(s, 10, "")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+
+	t.Run("trim all: with tail", func(t *testing.T) {
+		t.Parallel()
+		s := "あいうえお"
+		expected := "..."
+
+		out := TrimPrefix(s, 10, "...")
+		if out != expected {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+		}
+	})
+}
+
 var isneutralwidthtests = []struct {
 	in  rune
 	out bool
