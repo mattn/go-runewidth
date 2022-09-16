@@ -380,74 +380,28 @@ func TestTruncateNoNeeded(t *testing.T) {
 	}
 }
 
-func Test_TrimPrefix(t *testing.T) {
+var trimprefixtests = []struct {
+	s      string
+	w      int
+	prefix string
+	out    string
+}{
+	{"source", 4, "", "ce"},
+	{"source", 4, "...", "...ce"},
+	{"あいうえお", 6, "", "えお"},
+	{"あいうえお", 6, "...", "...えお"},
+	{"あいうえお", 10, "", ""},
+	{"あいうえお", 10, "...", "..."},
+}
+
+func TestTrimPrefix(t *testing.T) {
 	t.Parallel()
 
-	t.Run("ascii", func(t *testing.T) {
-		t.Parallel()
-		s := "source"
-		expected := "ce"
-
-		out := TrimPrefix(s, 4, "")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
+	for _, tt := range trimprefixtests {
+		if out := TrimPrefix(tt.s, tt.w, tt.prefix); out != tt.out {
+			t.Errorf("TrimPrefix(%q) = %q, want %q", tt.s, out, tt.out)
 		}
-	})
-
-	t.Run("ascii: with prefix", func(t *testing.T) {
-		t.Parallel()
-		s := "source"
-		expected := "...ce"
-
-		out := TrimPrefix(s, 4, "...")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
-		}
-	})
-
-	t.Run("non ascii", func(t *testing.T) {
-		t.Parallel()
-		s := "あいうえお"
-		expected := "えお"
-
-		out := TrimPrefix(s, 6, "")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
-		}
-	})
-
-	t.Run("non ascii: with prefix", func(t *testing.T) {
-		t.Parallel()
-		s := "あいうえお"
-		expected := "...えお"
-
-		out := TrimPrefix(s, 6, "...")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
-		}
-	})
-
-	t.Run("trim all", func(t *testing.T) {
-		t.Parallel()
-		s := "あいうえお"
-		expected := ""
-
-		out := TrimPrefix(s, 10, "")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
-		}
-	})
-
-	t.Run("trim all: with prefix", func(t *testing.T) {
-		t.Parallel()
-		s := "あいうえお"
-		expected := "..."
-
-		out := TrimPrefix(s, 10, "...")
-		if out != expected {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", s, out, expected)
-		}
-	})
+	}
 }
 
 var isneutralwidthtests = []struct {
