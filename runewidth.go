@@ -2,6 +2,7 @@ package runewidth
 
 import (
 	"os"
+	"strings"
 
 	"github.com/rivo/uniseg"
 )
@@ -233,7 +234,12 @@ func (c *Condition) TrimPrefix(s string, w int, prefix string) string {
 			}
 		}
 		if width+chWidth > w {
-			pos, _ = g.Positions()
+			if width < w {
+				_, pos = g.Positions()
+				prefix += strings.Repeat(" ", w-width)
+			} else {
+				pos, _ = g.Positions()
+			}
 
 			break
 		}
