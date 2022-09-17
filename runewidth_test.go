@@ -380,7 +380,7 @@ func TestTruncateNoNeeded(t *testing.T) {
 	}
 }
 
-var trimprefixtests = []struct {
+var truncatelefttests = []struct {
 	s      string
 	w      int
 	prefix string
@@ -396,12 +396,12 @@ var trimprefixtests = []struct {
 	{"Aあいうえお", 5, "", "うえお"},
 }
 
-func TestTrimPrefix(t *testing.T) {
+func TestTruncateLeft(t *testing.T) {
 	t.Parallel()
 
-	for _, tt := range trimprefixtests {
-		if out := TrimPrefix(tt.s, tt.w, tt.prefix); out != tt.out {
-			t.Errorf("TrimPrefix(%q) = %q, want %q", tt.s, out, tt.out)
+	for _, tt := range truncatelefttests {
+		if out := TruncateLeft(tt.s, tt.w, tt.prefix); out != tt.out {
+			t.Errorf("TruncateLeft(%q) = %q, want %q", tt.s, out, tt.out)
 		}
 	}
 }

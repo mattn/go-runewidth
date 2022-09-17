@@ -215,8 +215,8 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	return s[:pos] + tail
 }
 
-// TrimPrefix cuts w cells from the beginning of the `s`.
-func (c *Condition) TrimPrefix(s string, w int, prefix string) string {
+// TruncateLeft cuts w cells from the beginning of the `s`.
+func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	if c.StringWidth(s) <= w {
 		return prefix
 	}
@@ -233,17 +233,21 @@ func (c *Condition) TrimPrefix(s string, w int, prefix string) string {
 				break // See StringWidth() for details.
 			}
 		}
-		if width+chWidth > w {
-			if width < w {
-				_, pos = g.Positions()
-				prefix += strings.Repeat(" ", w-width)
-			} else {
-				pos, _ = g.Positions()
-			}
 
-			break
+		if width+chWidth <= w {
+			width += chWidth
+
+			continue
 		}
-		width += chWidth
+
+		if width < w {
+			_, pos = g.Positions()
+			prefix += strings.Repeat(" ", w-width)
+		} else {
+			pos, _ = g.Positions()
+		}
+
+		break
 	}
 
 	return prefix + s[pos:]
@@ -326,9 +330,9 @@ func Truncate(s string, w int, tail string) string {
 	return DefaultCondition.Truncate(s, w, tail)
 }
 
-// TrimPrefix cuts w cells from the beginning of the `s`.
-func TrimPrefix(s string, w int, prefix string) string {
-	return DefaultCondition.TrimPrefix(s, w, prefix)
+// TruncateLeft cuts w cells from the beginning of the `s`.
+func TruncateLeft(s string, w int, prefix string) string {
+	return DefaultCondition.TruncateLeft(s, w, prefix)
 }
 
 // Wrap return string wrapped with w cells
