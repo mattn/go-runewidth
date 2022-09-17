@@ -234,20 +234,18 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 			}
 		}
 
-		if width+chWidth <= w {
-			width += chWidth
+		if width+chWidth > w {
+			if width < w {
+				_, pos = g.Positions()
+				prefix += strings.Repeat(" ", width+chWidth-w)
+			} else {
+				pos, _ = g.Positions()
+			}
 
-			continue
+			break
 		}
 
-		if width < w {
-			_, pos = g.Positions()
-			prefix += strings.Repeat(" ", w-width)
-		} else {
-			pos, _ = g.Positions()
-		}
-
-		break
+		width += chWidth
 	}
 
 	return prefix + s[pos:]
