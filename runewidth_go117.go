@@ -1,3 +1,6 @@
+//go:build !go1.18
+// +build !go1.18
+
 package runewidth
 
 import (
@@ -174,12 +177,10 @@ func (c *Condition) CreateLUT() {
 
 // StringWidth return width as you can see
 func (c *Condition) StringWidth(s string) (width int) {
-	state := -1
-	var cl string
-	for len(s) > 0 {
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
 		var chWidth int
-		cl, s, _, state = uniseg.FirstGraphemeClusterInString(s, state)
-		for index, r := range cl {
+		for index, r := range g.Str() {
 			if index == 0 && inTable(r, emoji) {
 				chWidth = 2 // Not the optimal solution but it will work in most cases.
 				break
@@ -198,13 +199,10 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	}
 	w -= c.StringWidth(tail)
 	var width, pos int
-	substr, state := s, -1
-	for len(substr) > 0 {
-		var (
-			ch      string
-			chWidth int
-		)
-		ch, substr, _, state = uniseg.FirstGraphemeClusterInString(substr, state)
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
+		var chWidth int
+		ch := g.Str()
 		for index, r := range ch {
 			if index == 0 && inTable(r, emoji) {
 				chWidth = 2 // Not the optimal solution but it will work in most cases.
