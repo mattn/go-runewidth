@@ -2,6 +2,7 @@ package runewidth
 
 import (
 	"os"
+	"strings"
 
 	"github.com/rivo/uniseg"
 )
@@ -214,6 +215,42 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	return s[:pos] + tail
 }
 
+// TruncateLeft cuts w cells from the beginning of the `s`.
+func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
+	if c.StringWidth(s) <= w {
+		return prefix
+	}
+
+	var width int
+	pos := len(s)
+
+	g := uniseg.NewGraphemes(s)
+	for g.Next() {
+		var chWidth int
+		for _, r := range g.Runes() {
+			chWidth = c.RuneWidth(r)
+			if chWidth > 0 {
+				break // See StringWidth() for details.
+			}
+		}
+
+		if width+chWidth > w {
+			if width < w {
+				_, pos = g.Positions()
+				prefix += strings.Repeat(" ", width+chWidth-w)
+			} else {
+				pos, _ = g.Positions()
+			}
+
+			break
+		}
+
+		width += chWidth
+	}
+
+	return prefix + s[pos:]
+}
+
 // Wrap return string wrapped with w cells
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
@@ -289,6 +326,11 @@ func StringWidth(s string) (width int) {
 // Truncate return string truncated with w cells
 func Truncate(s string, w int, tail string) string {
 	return DefaultCondition.Truncate(s, w, tail)
+}
+
+// TruncateLeft cuts w cells from the beginning of the `s`.
+func TruncateLeft(s string, w int, prefix string) string {
+	return DefaultCondition.TruncateLeft(s, w, prefix)
 }
 
 // Wrap return string wrapped with w cells

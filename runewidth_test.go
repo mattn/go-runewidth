@@ -380,6 +380,32 @@ func TestTruncateNoNeeded(t *testing.T) {
 	}
 }
 
+var truncatelefttests = []struct {
+	s      string
+	w      int
+	prefix string
+	out    string
+}{
+	{"source", 4, "", "ce"},
+	{"source", 4, "...", "...ce"},
+	{"あいうえお", 6, "", "えお"},
+	{"あいうえお", 6, "...", "...えお"},
+	{"あいうえお", 10, "", ""},
+	{"あいうえお", 10, "...", "..."},
+	{"あいうえお", 5, "", " えお"},
+	{"Aあいうえお", 5, "", "うえお"},
+}
+
+func TestTruncateLeft(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range truncatelefttests {
+		if out := TruncateLeft(tt.s, tt.w, tt.prefix); out != tt.out {
+			t.Errorf("TruncateLeft(%q) = %q, want %q", tt.s, out, tt.out)
+		}
+	}
+}
+
 var isneutralwidthtests = []struct {
 	in  rune
 	out bool
