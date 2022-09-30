@@ -1,6 +1,9 @@
 //go:build go1.18
 // +build go1.18
 
+// Note: Once you upgrade to Go1.18, you must also upgrade the
+// github.com/rivo/uniseg dependency to the latest version.
+
 package runewidth
 
 import (
