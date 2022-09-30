@@ -1,3 +1,6 @@
+//go:build !go1.18
+// +build !go1.18
+
 package runewidth
 
 import (
@@ -178,11 +181,12 @@ func (c *Condition) StringWidth(s string) (width int) {
 	g := uniseg.NewGraphemes(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // Our best guess at this point is to use the width of the first non-zero-width rune.
+		for index, r := range g.Str() {
+			if index == 0 && inTable(r, emoji) {
+				chWidth = 2 // Not the optimal solution but it will work in most cases.
+				break
 			}
+			chWidth += c.RuneWidth(r)
 		}
 		width += chWidth
 	}
@@ -195,22 +199,23 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 		return s
 	}
 	w -= c.StringWidth(tail)
-	var width int
-	pos := len(s)
+	var width, pos int
 	g := uniseg.NewGraphemes(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // See StringWidth() for details.
+		ch := g.Str()
+		for index, r := range ch {
+			if index == 0 && inTable(r, emoji) {
+				chWidth = 2 // Not the optimal solution but it will work in most cases.
+				break
 			}
+			chWidth += c.RuneWidth(r)
 		}
 		if width+chWidth > w {
-			pos, _ = g.Positions()
 			break
 		}
 		width += chWidth
+		pos += len(ch)
 	}
 	return s[:pos] + tail
 }
@@ -227,11 +232,13 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	g := uniseg.NewGraphemes(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // See StringWidth() for details.
+		ch := g.Str()
+		for index, r := range ch {
+			if index == 0 && inTable(r, emoji) {
+				chWidth = 2 // Not the optimal solution but it will work in most cases.
+				break
 			}
+			chWidth += c.RuneWidth(r)
 		}
 
 		if width+chWidth > w {

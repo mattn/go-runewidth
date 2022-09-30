@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 // Generate runewidth_table.go from data at https://unicode.org/
@@ -164,6 +165,16 @@ func emoji(out io.Writer, in io.Reader) error {
 			lo: r1,
 			hi: r2,
 		})
+	}
+
+	// We also want regional indicator symbols (flags) to be part of the Emoji
+	// table. They are U+1F1E6..U+1F1FF.
+	for index, r := range arr {
+		if r.lo >= 0x1f1ff {
+			arr = append(arr[:index+1], arr[index:]...)
+			arr[index] = rrange{lo: 0x1f1e6, hi: 0x1f1ff}
+			break
+		}
 	}
 
 	shapeup(&arr)

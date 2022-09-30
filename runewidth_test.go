@@ -44,7 +44,7 @@ var tables = []tableInfo{
 	{combining, "combining", 465, "3cce13deb5e23f9f7327f2b1ef162328285a7dcf277a98302a8f7cdd43971268"},
 	{doublewidth, "doublewidth", 182440, "3d16eda8650dc2c92d6318d32f0b4a74fda5a278db2d4544b1dd65863394823c"},
 	{ambiguous, "ambiguous", 138739, "d05e339a10f296de6547ff3d6c5aee32f627f6555477afebd4a3b7e3cf74c9e3"},
-	{emoji, "emoji", 3535, "9ec17351601d49c535658de8d129c1d0ccda2e620669fc39a2faaee7dedcef6d"},
+	{emoji, "emoji", 3561, "3f1ae3b21ead544a59ab68fe541e8b098adc4fe1ffe3389a523a01dbfd8c1d75"},
 	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
 	{neutral, "neutral", 27333, "5455f5e75c307f70b4e9b2384dc5a8bcd91a4c5e2b24b2b185dfad4d860ee5c2"},
 }
@@ -406,6 +406,15 @@ func TestTruncateLeft(t *testing.T) {
 	}
 }
 
+func TestTruncateEmoji(t *testing.T) {
+	s := "😂😡"
+	expected := "😂"
+
+	if out := Truncate(s, 2, ""); out != expected {
+		t.Errorf("Truncate(%q) = %q, want %q", s, out, expected)
+	}
+}
+
 var isneutralwidthtests = []struct {
 	in  rune
 	out bool
@@ -488,7 +497,7 @@ func TestZeroWidthJoiner(t *testing.T) {
 		{"\u200d🍳", 2},
 		{"👨\u200d👨", 2},
 		{"👨\u200d👨\u200d👧", 2},
-		{"🏳️\u200d🌈", 1},
+		{"🏳️\u200d🌈", 2},
 		{"あ👩\u200d🍳い", 6},
 		{"あ\u200d🍳い", 6},
 		{"あ\u200dい", 4},
