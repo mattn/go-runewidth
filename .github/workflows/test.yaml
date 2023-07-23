@@ -14,8 +14,8 @@ jobs:
         go: ["1.15", "1.16"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
 
@@ -24,4 +24,4 @@ jobs:
       - run: go test ./... -v -cover -coverprofile coverage.out
       - run: go test -bench . -benchmem
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v3
