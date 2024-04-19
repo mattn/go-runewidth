@@ -64,6 +64,9 @@ func inTable(r rune, t table) bool {
 	if r < t[0].first {
 		return false
 	}
+	if r > t[len(t)-1].last {
+		return false
+	}
 
 	bot := 0
 	top := len(t) - 1
