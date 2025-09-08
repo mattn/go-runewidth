@@ -1,0 +1,54 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mattn/go-runewidth
+cpu: Apple M2
+BenchmarkString1WidthAll/regular-8    	      27	  41509185 ns/op	 4456485 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/regular-8    	      28	  41549839 ns/op	 4456474 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/regular-8    	      28	  41507516 ns/op	 4456474 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/regular-8    	      28	  41912821 ns/op	 4456484 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/regular-8    	      27	  41519022 ns/op	 4456482 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/regular-8    	      27	  41497157 ns/op	 4456471 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  26027476 ns/op	 4456516 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  25995505 ns/op	 4456496 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  25953954 ns/op	 4456501 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  25977054 ns/op	 4456500 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  26004708 ns/op	 4456503 B/op	 1114112 allocs/op
+BenchmarkString1WidthAll/lut-8        	      45	  25999668 ns/op	 4456505 B/op	 1114112 allocs/op
+BenchmarkString1Width768/regular-8    	   76068	     15763 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/regular-8    	   75843	     15789 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/regular-8    	   75612	     15838 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/regular-8    	   75717	     15855 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/regular-8    	   75703	     15778 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/regular-8    	   75901	     15813 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   76696	     15594 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   77456	     15546 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   77518	     15562 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   76616	     15552 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   77176	     15547 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768/lut-8        	   77379	     15497 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47071812 ns/op	 4456485 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47071985 ns/op	 4456485 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47051745 ns/op	 4456471 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47005855 ns/op	 4456484 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47095312 ns/op	 4456509 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/regular-8         	      25	  47052542 ns/op	 4456480 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  25995477 ns/op	 4456498 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  25980138 ns/op	 4456503 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  26188815 ns/op	 4456523 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  26040702 ns/op	 4456500 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  26052057 ns/op	 4456514 B/op	 1114112 allocs/op
+BenchmarkString1WidthAllEastAsian/lut-8             	      45	  25985549 ns/op	 4456496 B/op	 1114112 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   42775	     28003 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   39133	     27975 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   43075	     27877 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   43077	     27868 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   43065	     28108 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/regular-8         	   42739	     28221 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   76803	     15582 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   77178	     15533 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   77490	     15589 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   76488	     15542 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   77306	     15590 ns/op	    3072 B/op	     768 allocs/op
+BenchmarkString1Width768EastAsian/lut-8             	   77364	     15581 ns/op	    3072 B/op	     768 allocs/op
+PASS
+ok  	github.com/mattn/go-runewidth	65.010s

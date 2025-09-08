@@ -1,5 +1,5 @@
 module github.com/mattn/go-runewidth
 
-go 1.9
+go 1.20
 
-require github.com/rivo/uniseg v0.2.0
+require github.com/clipperhouse/uax29/v2 v2.0.0
