@@ -16,7 +16,7 @@ var (
 // IsEastAsian return true if the current locale is CJK
 func IsEastAsian() bool {
 	if os.Getenv("WT_SESSION") != "" {
-		// Windows Terminal is always UTF-8
+		// Windows Terminal always not use East Asian Ambiguous Width(s).
 		return false
 	}
 
