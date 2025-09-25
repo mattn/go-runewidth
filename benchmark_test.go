@@ -72,9 +72,9 @@ func BenchmarkRuneWidth768EastAsian(b *testing.B) {
 func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want int) int {
 	b.Helper()
 	n := 0
-	strings := make([]string, stop-start)
+	ss := make([]string, stop-start)
 	for r := start; r < stop; r++ {
-		strings = append(strings, string(r))
+		ss = append(ss, string(r))
 	}
 
 	b.Run("regular", func(b *testing.B) {
@@ -85,7 +85,7 @@ func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			got = n
-			for _, s := range strings {
+			for _, s := range ss {
 				n += c.StringWidth(s)
 			}
 			got = n - got
@@ -104,7 +104,7 @@ func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			got = n
-			for _, s := range strings {
+			for _, s := range ss {
 				n += c.StringWidth(s)
 			}
 			got = n - got
