@@ -41,12 +41,12 @@ type tableInfo struct {
 var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
 	{nonprint, "nonprint", 2143, "288904683eb225e7c4c0bd3ee481b53e8dace404ec31d443afdbc4d13729fe95"},
-	{combining, "combining", 555, "bf1cafd5aa2c3734b07a609ffd4d981cd3184e322a1b261431ff746031305cb4"},
-	{doublewidth, "doublewidth", 182521, "88f214dc0a0c31eb2bc083d1e4b3ad58f720634c6708be8b61f10446a8967b37"},
+	{combining, "combining", 582, "412df34fa505db54c30010afa445b84f882d40b1b8c1bdf99a27c9be5ee12934"},
+	{doublewidth, "doublewidth", 182876, "55dcb1b999d6356d1a083085bb053bdeafc6dda05dec002617d85fda2a82d496"},
 	{ambiguous, "ambiguous", 138739, "d05e339a10f296de6547ff3d6c5aee32f627f6555477afebd4a3b7e3cf74c9e3"},
-	{emoji, "emoji", 3535, "9ec17351601d49c535658de8d129c1d0ccda2e620669fc39a2faaee7dedcef6d"},
+	{emoji, "emoji", 2846, "09914b87febaa5493f2420a58f03dd6b026fa665b7c811abc7423a26a9b442c3"},
 	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
-	{neutral, "neutral", 28382, "1cbccfec7db52c7bd0e6c97c26229278a221b68afc0ca7830f1ba7e86c9b6dbc"},
+	{neutral, "neutral", 33699, "0227a9bf73169ee85aeea09e35e0793431aba4af611f1f69391b90f08ee398d4"},
 }
 
 func TestTableChecksums(t *testing.T) {
@@ -72,8 +72,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "a98d2a32d1b3407a3037636a279a73c3d549f6a9fbc8e92bee91dd991acdf0e1"},
-		{"ea-yes", true, "cac3940e576bfd67d8312b762ddee862caf388d30a137359a8d9b07ba09166de"},
+		{"ea-no", false, "8d686de954ab55ad51942f04c2061b975029ba47b3ae56a21b806087f852264a"},
+		{"ea-yes", true, "1fa20e348c8c8f1c6c07f634925bc8907041fa78ee1c4886efab0b97bf004d6b"},
 	}
 
 	for _, testcase := range testcases {
@@ -108,8 +108,8 @@ func TestDefaultLUT(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "a98d2a32d1b3407a3037636a279a73c3d549f6a9fbc8e92bee91dd991acdf0e1"},
-		{"ea-yes", true, "cac3940e576bfd67d8312b762ddee862caf388d30a137359a8d9b07ba09166de"},
+		{"ea-no", false, "8d686de954ab55ad51942f04c2061b975029ba47b3ae56a21b806087f852264a"},
+		{"ea-yes", true, "1fa20e348c8c8f1c6c07f634925bc8907041fa78ee1c4886efab0b97bf004d6b"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")
@@ -186,7 +186,7 @@ var runewidthtests = []struct {
 	{'ｲ', 1, 1, 1},
 	{'☆', 1, 2, 2}, // double width in ambiguous
 	{'☺', 1, 1, 2},
-	{'☻', 1, 1, 2},
+	{'☻', 1, 1, 1},
 	{'♥', 1, 2, 2},
 	{'♦', 1, 1, 2},
 	{'♣', 1, 2, 2},
@@ -194,8 +194,8 @@ var runewidthtests = []struct {
 	{'♂', 1, 2, 2},
 	{'♀', 1, 2, 2},
 	{'♪', 1, 2, 2},
-	{'♫', 1, 1, 2},
-	{'☼', 1, 1, 2},
+	{'♫', 1, 1, 1},
+	{'☼', 1, 1, 1},
 	{'↕', 1, 2, 2},
 	{'‼', 1, 1, 2},
 	{'↔', 1, 2, 2},
