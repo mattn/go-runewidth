@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -24,7 +24,7 @@ type rrange struct {
 
 func generate(out io.Writer, v string, arr []rrange) {
 	fmt.Fprintf(out, "var %s = table{\n\t", v)
-	for i := 0; i < len(arr); i++ {
+	for i := range len(arr) {
 		fmt.Fprintf(out, "{0x%04X, 0x%04X},", arr[i].lo, arr[i].hi)
 		if i < len(arr)-1 {
 			if i%3 == 2 {
@@ -74,7 +74,7 @@ func eastasian(out io.Writer, in io.Reader) error {
 			r2 = r1
 		}
 
-		if strings.Index(line, "COMBINING") != -1 {
+		if strings.Contains(line, "COMBINING") {
 			cmb = append(cmb, rrange{
 				lo: r1,
 				hi: r2,
@@ -133,7 +133,7 @@ func emoji(out io.Writer, in io.Reader) error {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Index(line, "Extended_Pictographic=No") != -1 {
+		if strings.Contains(line, "Extended_Pictographic=No") {
 			break
 		}
 	}
@@ -200,7 +200,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile("runewidth_table.go", out, 0666)
+	err = os.WriteFile("runewidth_table.go", out, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
