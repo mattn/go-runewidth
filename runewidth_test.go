@@ -427,6 +427,27 @@ func TestIsNeutralWidth(t *testing.T) {
 	}
 }
 
+var iscombiningwidthtests = []struct {
+	in  rune
+	out bool
+}{
+	{'\u0300', true},  // COMBINING GRAVE ACCENT
+	{'\uFE0F', true},  // VARIATION SELECTOR-16
+	{'\uFE0E', true},  // VARIATION SELECTOR-15
+	{'\u180B', true},  // MONGOLIAN FREE VARIATION SELECTOR ONE
+	{'\U000E0100', true}, // VARIATION SELECTOR-17
+	{'A', false},
+	{'☆', false},
+}
+
+func TestIsCombiningWidth(t *testing.T) {
+	for _, tt := range iscombiningwidthtests {
+		if out := IsCombiningWidth(tt.in); out != tt.out {
+			t.Errorf("IsCombiningWidth(%q) = %v, want %v", tt.in, out, tt.out)
+		}
+	}
+}
+
 func TestFillLeft(t *testing.T) {
 	s := "あxいうえお"
 	expected := "    あxいうえお"
