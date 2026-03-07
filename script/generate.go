@@ -81,6 +81,14 @@ func eastasian(out io.Writer, in io.Reader) error {
 			})
 		}
 
+		if strings.Contains(line, "VARIATION SELECTOR") {
+			cmb = append(cmb, rrange{
+				lo: r1,
+				hi: r2,
+			})
+			continue
+		}
+
 		switch ss {
 		case "W", "F":
 			dbl = append(dbl, rrange{
