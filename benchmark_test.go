@@ -165,3 +165,27 @@ func BenchmarkTableNarrow(b *testing.B) {
 func BenchmarkTableNeutral(b *testing.B) {
 	benchSink = benchTable(b, neutral)
 }
+
+func BenchmarkFillLeftShort(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		FillLeft("test", 16)
+	}
+}
+
+func BenchmarkFillLeftLong(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		FillLeft("test", 64)
+	}
+}
+
+func BenchmarkFillRightShort(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		FillRight("test", 16)
+	}
+}
+
+func BenchmarkFillRightLong(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		FillRight("test", 64)
+	}
+}
