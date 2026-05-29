@@ -419,11 +419,7 @@ func (c *Condition) FillLeft(s string, w int) string {
 	width := c.StringWidth(s)
 	count := w - width
 	if count > 0 {
-		b := make([]byte, count)
-		for i := range b {
-			b[i] = ' '
-		}
-		return string(b) + s
+		return strings.Repeat(" ", count) + s
 	}
 	return s
 }
@@ -433,11 +429,7 @@ func (c *Condition) FillRight(s string, w int) string {
 	width := c.StringWidth(s)
 	count := w - width
 	if count > 0 {
-		b := make([]byte, count)
-		for i := range b {
-			b[i] = ' '
-		}
-		return s + string(b)
+		return s + strings.Repeat(" ", count)
 	}
 	return s
 }
