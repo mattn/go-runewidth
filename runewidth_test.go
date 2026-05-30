@@ -406,6 +406,40 @@ func TestTruncateLeft(t *testing.T) {
 	}
 }
 
+var truncateprefixtests = []struct {
+	s      string
+	w      int
+	prefix string
+	out    string
+}{
+	{"source", 4, "*", "*rce"},
+	{"source", 6, "*", "source"},
+	{"あいうえお", 4, "*", "*お"},
+	{"あいうえお", 10, "*", "あいうえお"},
+	{"Aあいうえお", 5, "*", "*えお"},
+
+	{"source", 4, "", "urce"},
+	{"source", 4, "...", "...e"},
+	{"あいうえお", 6, "", "うえお"},
+	{"あいうえお", 6, "...", "...お"},
+	{"あいうえお", 10, "", "あいうえお"},
+	{"あいうえお", 10, "...", "あいうえお"},
+	{"あいうえお", 5, "", "えお"},
+
+	{"source", 1, "*", "*"},
+	{"source", 0, "*", "*"}, // same as Truncate
+}
+
+func TestTruncatePrefix(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range truncateprefixtests {
+		if out := TruncatePrefix(tt.s, tt.w, tt.prefix); out != tt.out {
+			t.Errorf("TruncatePrefix(%q) = %q, want %q", tt.s, out, tt.out)
+		}
+	}
+}
+
 var isneutralwidthtests = []struct {
 	in  rune
 	out bool
