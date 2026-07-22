@@ -414,7 +414,7 @@ func (c *Condition) Wrap(s string, w int) string {
 	return out.String()
 }
 
-// FillLeft return string filled in left by spaces in w cells
+// FillLeft returns a string filled on the left by spaces to width w cells
 func (c *Condition) FillLeft(s string, w int) string {
 	width := c.StringWidth(s)
 	count := w - width
@@ -428,7 +428,7 @@ func (c *Condition) FillLeft(s string, w int) string {
 	return s
 }
 
-// FillRight return string filled in left by spaces in w cells
+// FillRight returns a string filled on the right by spaces to width w cells
 func (c *Condition) FillRight(s string, w int) string {
 	width := c.StringWidth(s)
 	count := w - width
@@ -483,12 +483,12 @@ func Wrap(s string, w int) string {
 	return DefaultCondition.Wrap(s, w)
 }
 
-// FillLeft return string filled in left by spaces in w cells
+// FillLeft returns a string filled on the left by spaces to width w cells
 func FillLeft(s string, w int) string {
 	return DefaultCondition.FillLeft(s, w)
 }
 
-// FillRight return string filled in left by spaces in w cells
+// FillRight returns a string filled on the right by spaces to width w cells
 func FillRight(s string, w int) string {
 	return DefaultCondition.FillRight(s, w)
 }
