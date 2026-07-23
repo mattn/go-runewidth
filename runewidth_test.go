@@ -521,3 +521,16 @@ func TestZeroWidthJoiner(t *testing.T) {
 		}
 	}
 }
+
+
+func TestTruncateTailWiderThanWidth(t *testing.T) {
+	// tail wider than limit: must not return the oversized tail alone
+	out := Truncate("hello world", 2, "...")
+	if StringWidth(out) > 2 {
+		t.Errorf("Truncate width=%d for %q, want <= 2", StringWidth(out), out)
+	}
+	out = Truncate("hello", 0, "...")
+	if out != "" {
+		t.Errorf("Truncate w=0 got %q, want empty", out)
+	}
+}

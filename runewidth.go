@@ -333,7 +333,16 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	if c.StringWidth(s) <= w {
 		return s
 	}
-	w -= c.StringWidth(tail)
+	tw := c.StringWidth(tail)
+	// If the tail alone does not fit, return a truncated tail rather than
+	// treating a negative remaining width as "empty prefix + full tail".
+	if tw >= w {
+		if w <= 0 {
+			return ""
+		}
+		return c.Truncate(tail, w, "")
+	}
+	w -= tw
 	var width int
 	pos := len(s)
 	g := graphemes.FromString(s)
