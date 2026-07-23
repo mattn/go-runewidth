@@ -521,3 +521,13 @@ func TestZeroWidthJoiner(t *testing.T) {
 		}
 	}
 }
+
+func TestWrapZeroOrNegativeWidth(t *testing.T) {
+	s := "hello world"
+	for _, w := range []int{0, -1, -10} {
+		out := Wrap(s, w)
+		if out != s {
+			t.Errorf("Wrap(%q, %d) = %q, want unchanged", s, w, out)
+		}
+	}
+}

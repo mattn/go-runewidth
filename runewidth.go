@@ -390,8 +390,12 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	return prefix + s[pos:]
 }
 
-// Wrap return string wrapped with w cells
+// Wrap returns a string wrapped to at most w cells per line.
+// If w is zero or negative, s is returned unchanged.
 func (c *Condition) Wrap(s string, w int) string {
+	if w <= 0 {
+		return s
+	}
 	width := 0
 	var out strings.Builder
 	out.Grow(len(s) + len(s)/w + 1)
@@ -478,7 +482,7 @@ func TruncateLeft(s string, w int, prefix string) string {
 	return DefaultCondition.TruncateLeft(s, w, prefix)
 }
 
-// Wrap return string wrapped with w cells
+// Wrap returns a string wrapped to at most w cells per line.
 func Wrap(s string, w int) string {
 	return DefaultCondition.Wrap(s, w)
 }
