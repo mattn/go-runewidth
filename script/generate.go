@@ -74,18 +74,16 @@ func eastasian(out io.Writer, in io.Reader) error {
 			r2 = r1
 		}
 
-		if strings.Index(line, "COMBINING") != -1 {
-			cmb = append(cmb, rrange{
-				lo: r1,
-				hi: r2,
-			})
-		}
+		isCombo := strings.Index(line, "COMBINING") != -1 ||
+			strings.Contains(line, "# Mn") ||
+			strings.Contains(line, "# Me") ||
+			strings.Contains(line, "# Mc")
+		isVS := strings.Contains(line, "VARIATION SELECTOR")
 
-		if strings.Contains(line, "VARIATION SELECTOR") {
-			cmb = append(cmb, rrange{
-				lo: r1,
-				hi: r2,
-			})
+		if isCombo || isVS {
+			cmb = append(cmb, rrange{lo: r1, hi: r2})
+		}
+		if isVS {
 			continue
 		}
 

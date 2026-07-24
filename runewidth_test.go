@@ -41,7 +41,7 @@ type tableInfo struct {
 var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
 	{nonprint, "nonprint", 2143, "288904683eb225e7c4c0bd3ee481b53e8dace404ec31d443afdbc4d13729fe95"},
-	{combining, "combining", 842, "a89cdf3daf597a953ca315f005316f19d52a0f83197207fe6b844f295cbade54"},
+	{combining, "combining", 2543, "6d07928151a639a70fe91ace7d36fc835c3101f93adcedb2550a25c167435f2a"},
 	{doublewidth, "doublewidth", 182876, "55dcb1b999d6356d1a083085bb053bdeafc6dda05dec002617d85fda2a82d496"},
 	{ambiguous, "ambiguous", 138483, "f4ed2dd733c0821cf6297fc24be0baea527ec7cad10d23b0ac7f57dcdf344cdb"},
 	{emoji, "emoji", 2846, "09914b87febaa5493f2420a58f03dd6b026fa665b7c811abc7423a26a9b442c3"},
@@ -72,8 +72,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "27fcc4f23635fb16651f9596517792cd497d4ac986020409215936e104d9eaa7"},
-		{"ea-yes", true, "587ef2296285b71e9a37252a2f829db3caf85eddc2152bc6b22203bc2bcad01f"},
+		{"ea-no", false, "2c96f956fd5d0f833aab8203bfa537f078a02ad7550815ee882354a8292d84db"},
+		{"ea-yes", true, "23b7fae1c29131a72d8a05911aff92c8873d65c84fe18108f81bef4a8eecac06"},
 	}
 
 	for _, testcase := range testcases {
@@ -108,8 +108,8 @@ func TestDefaultLUT(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "27fcc4f23635fb16651f9596517792cd497d4ac986020409215936e104d9eaa7"},
-		{"ea-yes", true, "587ef2296285b71e9a37252a2f829db3caf85eddc2152bc6b22203bc2bcad01f"},
+		{"ea-no", false, "2c96f956fd5d0f833aab8203bfa537f078a02ad7550815ee882354a8292d84db"},
+		{"ea-yes", true, "23b7fae1c29131a72d8a05911aff92c8873d65c84fe18108f81bef4a8eecac06"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")
@@ -207,6 +207,10 @@ var runewidthtests = []struct {
 	{'a', 1, 1, 1}, // ASCII classified as "na" (narrow)
 	{'⟦', 1, 1, 1}, // non-ASCII classified as "na" (narrow)
 	{'👁', 1, 1, 2},
+	{'\u093E', 0, 0, 0}, // DEVANAGARI VOWEL SIGN AA (Mc) - spacing mark
+	{'\u0941', 0, 0, 0}, // DEVANAGARI VOWEL SIGN U (Mn) - nonspacing mark
+	{'\u094D', 0, 0, 0}, // DEVANAGARI SIGN VIRAMA (Mn)
+	{'\u0915', 1, 1, 1}, // DEVANAGARI LETTER KA (Lo) - base consonant, width 1
 }
 
 func TestRuneWidth(t *testing.T) {
