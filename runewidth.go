@@ -30,6 +30,7 @@ var (
 	widewidth       table // ambiguous + doublewidth merged for EA path
 	eastAsianWidth  widthTable
 	eastAsianWidth0 [0x300]byte
+	strictWidthLUT  [2][0x110000]byte
 )
 
 func init() {
@@ -37,8 +38,9 @@ func init() {
 	widewidth = mergeIntervals(ambiguous, doublewidth)
 	eastAsianWidth = makeWidthTable(zerowidth, widewidth)
 	for r := range eastAsianWidth0 {
-		eastAsianWidth0[r] = byte(runeWidthEastAsian(rune(r)))
+		eastAsianWidth0[r] = byte(runeWidthEastAsianNoCache(rune(r), true))
 	}
+	initStrictWidthLUT()
 	handleEnv()
 }
 
@@ -189,11 +191,55 @@ func inWidthTable(r rune, t widthTable) (int, bool) {
 	return 0, false
 }
 
-func runeWidthEastAsian(r rune) int {
+func runeWidthNoLUT(r rune, eastAsian, strictEmojiNeutral bool) int {
+	if !eastAsian {
+		if r < 0x20 {
+			return 0
+		}
+		if (r >= 0x7F && r <= 0x9F) || r == 0xAD { // nonprint
+			return 0
+		}
+		if r < 0x300 {
+			return 1
+		}
+		switch {
+		case inTable(r, zerowidth):
+			return 0
+		case inTable(r, doublewidth):
+			return 2
+		default:
+			return 1
+		}
+	}
+
+	if r < 0x300 {
+		return int(eastAsianWidth0[r])
+	}
 	if w, ok := inWidthTable(r, eastAsianWidth); ok {
 		return w
 	}
+	if !strictEmojiNeutral && inTable(r, emoji) {
+		return 2
+	}
 	return 1
+}
+
+func runeWidthEastAsianNoCache(r rune, strictEmojiNeutral bool) int {
+	if w, ok := inWidthTable(r, eastAsianWidth); ok {
+		return w
+	}
+	if !strictEmojiNeutral && inTable(r, emoji) {
+		return 2
+	}
+	return 1
+}
+
+func initStrictWidthLUT() {
+	for i := range strictWidthLUT[0] {
+		r := rune(i)
+		strictWidthLUT[0][i] = byte(runeWidthNoLUT(r, false, true))
+		strictWidthLUT[1][i] = byte(runeWidthNoLUT(r, true, true))
+	}
 }
 
 var private = table{
@@ -231,37 +277,13 @@ func (c *Condition) RuneWidth(r rune) int {
 	if len(c.combinedLut) > 0 {
 		return int(c.combinedLut[r>>1]>>(uint(r&1)*4)) & 3
 	}
-	// optimized version, verified by TestRuneWidthChecksums()
-	if !c.EastAsianWidth {
-		if r < 0x20 {
-			return 0
+	if c.StrictEmojiNeutral {
+		if c.EastAsianWidth {
+			return int(strictWidthLUT[1][r])
 		}
-		if (r >= 0x7F && r <= 0x9F) || r == 0xAD { // nonprint
-			return 0
-		}
-		if r < 0x300 {
-			return 1
-		}
-		switch {
-		case inTable(r, zerowidth):
-			return 0
-		case inTable(r, doublewidth):
-			return 2
-		default:
-			return 1
-		}
+		return int(strictWidthLUT[0][r])
 	}
-
-	if r < 0x300 {
-		return int(eastAsianWidth0[r])
-	}
-	if w, ok := inWidthTable(r, eastAsianWidth); ok {
-		return w
-	}
-	if !c.StrictEmojiNeutral && inTable(r, emoji) {
-		return 2
-	}
-	return 1
+	return runeWidthNoLUT(r, c.EastAsianWidth, c.StrictEmojiNeutral)
 }
 
 // CreateLUT will create an in-memory lookup table of 557056 bytes for faster operation.
