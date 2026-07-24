@@ -408,6 +408,32 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	return prefix + s[pos:]
 }
 
+// TruncatePrefix cuts the beginning of `s` so the result fits in w cells, with prefix prepended
+func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
+	if c.StringWidth(prefix) >= w {
+		return prefix
+	}
+
+	sw := c.StringWidth(s)
+	if sw <= w {
+		return s
+	}
+	w -= c.StringWidth(prefix)
+	var width int
+	var pos int
+	g := graphemes.FromString(s)
+	for g.Next() {
+		chWidth := c.graphemeWidth(g.Value())
+		if sw-(width+chWidth) <= w {
+			pos = g.End()
+			break
+		}
+		width += chWidth
+	}
+
+	return prefix + s[pos:]
+}
+
 // Wrap return string wrapped with w cells
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
@@ -486,6 +512,11 @@ func Truncate(s string, w int, tail string) string {
 // TruncateLeft cuts w cells from the beginning of the `s`.
 func TruncateLeft(s string, w int, prefix string) string {
 	return DefaultCondition.TruncateLeft(s, w, prefix)
+}
+
+// TruncatePrefix cuts the beginning of `s` so the result fits in w cells, with prefix prepended
+func TruncatePrefix(s string, w int, prefix string) string {
+	return DefaultCondition.TruncatePrefix(s, w, prefix)
 }
 
 // Wrap return string wrapped with w cells
