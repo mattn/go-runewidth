@@ -569,3 +569,14 @@ func TestZeroWidthJoiner(t *testing.T) {
 		}
 	}
 }
+
+func TestZeroWidthJoinerFlag(t *testing.T) {
+	// The deprecated flag must compile and must not change any result.
+	for _, zwj := range []bool{true, false} {
+		c := NewCondition()
+		c.ZeroWidthJoiner = zwj
+		if got := c.StringWidth("👨‍👨‍👧"); got != 2 {
+			t.Errorf("StringWidth with ZeroWidthJoiner=%v = %d, want 2", zwj, got)
+		}
+	}
+}
