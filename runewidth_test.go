@@ -436,6 +436,12 @@ var truncateprefixtests = []struct {
 
 	{"source", 1, "*", "*"},
 	{"source", 0, "*", "*"}, // same as Truncate
+
+	// multi-rune grapheme clusters must be dropped or kept as a whole
+	{"👨‍👩‍👧cde", 4, "…", "…cde"},
+	{"खाabc", 3, "*", "*bc"},
+	{"🇩🇰abc", 3, "", "abc"},
+	{"あ🏳️‍🌈い", 4, "*", "*い"},
 }
 
 func TestTruncatePrefix(t *testing.T) {
