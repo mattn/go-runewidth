@@ -285,6 +285,21 @@ func (c *Condition) CreateLUT() {
 	c.combinedLut = lut
 }
 
+// graphemeWidth returns the width of a single grapheme cluster: the sum of
+// the widths of its runes, capped at 2 cells. The cap keeps multi-rune
+// sequences that render as a single glyph (ZWJ emoji, flags, Hangul jamo)
+// from being counted wider than the two cells terminals give them.
+func (c *Condition) graphemeWidth(cluster string) int {
+	width := 0
+	for _, r := range cluster {
+		width += c.RuneWidth(r)
+	}
+	if width > 2 {
+		width = 2
+	}
+	return width
+}
+
 // StringWidth return width as you can see
 func (c *Condition) StringWidth(s string) (width int) {
 	if len(s) == 1 {
@@ -316,14 +331,7 @@ graphemes:
 	width = 0
 	g := graphemes.FromString(s)
 	for g.Next() {
-		var chWidth int
-		for _, r := range g.Value() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // Our best guess at this point is to use the width of the first non-zero-width rune.
-			}
-		}
-		width += chWidth
+		width += c.graphemeWidth(g.Value())
 	}
 	return
 }
@@ -338,13 +346,7 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	pos := len(s)
 	g := graphemes.FromString(s)
 	for g.Next() {
-		var chWidth int
-		for _, r := range g.Value() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // See StringWidth() for details.
-			}
-		}
+		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			pos = g.Start()
 			break
@@ -365,13 +367,7 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 
 	g := graphemes.FromString(s)
 	for g.Next() {
-		var chWidth int
-		for _, r := range g.Value() {
-			chWidth = c.RuneWidth(r)
-			if chWidth > 0 {
-				break // See StringWidth() for details.
-			}
-		}
+		chWidth := c.graphemeWidth(g.Value())
 
 		if width+chWidth > w {
 			if width < w {

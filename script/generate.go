@@ -74,10 +74,12 @@ func eastasian(out io.Writer, in io.Reader) error {
 			r2 = r1
 		}
 
+		// Nonspacing (Mn) and enclosing (Me) marks are zero width.
+		// Spacing marks (Mc) occupy their own cell, like glibc's
+		// wcwidth, so they are excluded here.
 		isCombo := strings.Index(line, "COMBINING") != -1 ||
 			strings.Contains(line, "# Mn") ||
-			strings.Contains(line, "# Me") ||
-			strings.Contains(line, "# Mc")
+			strings.Contains(line, "# Me")
 		isVS := strings.Contains(line, "VARIATION SELECTOR")
 
 		if isCombo || isVS {
