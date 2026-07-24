@@ -18,6 +18,14 @@ var (
 	// StrictEmojiNeutral should be set false if handle broken fonts
 	StrictEmojiNeutral bool = true
 
+	// ZeroWidthJoiner is flag to set to use UTR#51 ZWJ.
+	//
+	// Deprecated: ZWJ sequences are always handled through Unicode
+	// grapheme cluster segmentation now, so this flag has no effect.
+	// It is kept only for compatibility with code written against
+	// v0.0.9 and earlier.
+	ZeroWidthJoiner bool
+
 	// DefaultCondition is a condition in current locale
 	DefaultCondition = &Condition{
 		EastAsianWidth:     false,
@@ -258,6 +266,12 @@ type Condition struct {
 	combinedLut        []byte
 	EastAsianWidth     bool
 	StrictEmojiNeutral bool
+
+	// Deprecated: ZWJ sequences are always handled through Unicode
+	// grapheme cluster segmentation now, so this flag has no effect.
+	// It is kept only for compatibility with code written against
+	// v0.0.9 and earlier.
+	ZeroWidthJoiner bool
 }
 
 // NewCondition return new instance of Condition which is current locale.
@@ -265,6 +279,7 @@ func NewCondition() *Condition {
 	return &Condition{
 		EastAsianWidth:     EastAsianWidth,
 		StrictEmojiNeutral: StrictEmojiNeutral,
+		ZeroWidthJoiner:    ZeroWidthJoiner,
 	}
 }
 
