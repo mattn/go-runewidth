@@ -645,3 +645,22 @@ func TestCreateLUTRebuildsAfterFlagChange(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateLUTSkipsRebuildWhenFlagsUnchanged(t *testing.T) {
+	savedEA, savedSEN := DefaultCondition.EastAsianWidth, DefaultCondition.StrictEmojiNeutral
+	savedLut := DefaultCondition.combinedLut
+	defer func() {
+		DefaultCondition.EastAsianWidth, DefaultCondition.StrictEmojiNeutral = savedEA, savedSEN
+		DefaultCondition.combinedLut = savedLut
+	}()
+
+	DefaultCondition.combinedLut = nil
+	CreateLUT()
+	// A rebuild overwrites every entry, so a poisoned byte surviving the
+	// second call is what shows the table was left alone.
+	DefaultCondition.combinedLut[0] = 0xff
+	CreateLUT()
+	if DefaultCondition.combinedLut[0] != 0xff {
+		t.Error("CreateLUT rebuilt the table although no flag changed")
+	}
+}

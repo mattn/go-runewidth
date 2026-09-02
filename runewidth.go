@@ -354,7 +354,12 @@ var nonprint = table{
 
 // Condition have flag EastAsianWidth whether the current locale is CJK or not.
 type Condition struct {
-	combinedLut        []byte
+	combinedLut []byte
+	// The flags combinedLut was built from, so that CreateLUT can tell a
+	// table that is still current from one that has to be rebuilt.
+	lutEastAsianWidth     bool
+	lutStrictEmojiNeutral bool
+
 	EastAsianWidth     bool
 	StrictEmojiNeutral bool
 
@@ -420,6 +425,11 @@ func (c *Condition) CreateLUT() {
 	const max = 0x110000
 	lut := c.combinedLut
 	if len(c.combinedLut) != 0 {
+		if c.lutEastAsianWidth == c.EastAsianWidth && c.lutStrictEmojiNeutral == c.StrictEmojiNeutral {
+			// The table still matches the flags, so rebuilding it
+			// would produce the same bytes.
+			return
+		}
 		// Remove so we don't use it.
 		c.combinedLut = nil
 	} else {
@@ -432,6 +442,8 @@ func (c *Condition) CreateLUT() {
 		lut[i] = uint8(x0) | uint8(x1)<<4
 	}
 	c.combinedLut = lut
+	c.lutEastAsianWidth = c.EastAsianWidth
+	c.lutStrictEmojiNeutral = c.StrictEmojiNeutral
 }
 
 // graphemeWidth returns the width of a single grapheme cluster: the sum of
@@ -665,6 +677,8 @@ func FillRight(s string, w int) string {
 
 // CreateLUT will create an in-memory lookup table of 557055 bytes for faster operation.
 // This should not be called concurrently with other operations.
+// If flags in DefaultCondition are changed, CreateLUT should be called again;
+// a call that finds the table already current is a no-op.
 func CreateLUT() {
 	DefaultCondition.CreateLUT()
 }
