@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 	"unicode/utf8"
@@ -613,6 +614,17 @@ func TestZeroWidthJoinerFlag(t *testing.T) {
 		c.ZeroWidthJoiner = zwj
 		if got := c.StringWidth("👨‍👨‍👧"); got != 2 {
 			t.Errorf("StringWidth with ZeroWidthJoiner=%v = %d, want 2", zwj, got)
+		}
+	}
+}
+
+func TestWrapNonPositiveWidth(t *testing.T) {
+	// Wrap only inserts newlines, so stripping them must give the input
+	// back for any width; w == 0 used to panic on the capacity hint.
+	for _, w := range []int{0, -1} {
+		got := strings.ReplaceAll(Wrap("hello", w), "\n", "")
+		if got != "hello" {
+			t.Errorf("Wrap(%q, %d) stripped = %q, want %q", "hello", w, got, "hello")
 		}
 	}
 }
