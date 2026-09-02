@@ -147,7 +147,6 @@ func handleEnv() {
 	if DefaultCondition.EastAsianWidth != EastAsianWidth {
 		DefaultCondition.EastAsianWidth = EastAsianWidth
 		if len(DefaultCondition.combinedLut) > 0 {
-			DefaultCondition.combinedLut = DefaultCondition.combinedLut[:0]
 			CreateLUT()
 		}
 	}
@@ -667,8 +666,5 @@ func FillRight(s string, w int) string {
 // CreateLUT will create an in-memory lookup table of 557055 bytes for faster operation.
 // This should not be called concurrently with other operations.
 func CreateLUT() {
-	if len(DefaultCondition.combinedLut) > 0 {
-		return
-	}
 	DefaultCondition.CreateLUT()
 }

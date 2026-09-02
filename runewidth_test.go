@@ -628,3 +628,20 @@ func TestWrapNonPositiveWidth(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateLUTRebuildsAfterFlagChange(t *testing.T) {
+	savedEA, savedLut := DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut
+	defer func() {
+		DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut = savedEA, savedLut
+	}()
+	for _, ea := range []bool{false, true} {
+		DefaultCondition.EastAsianWidth = !ea
+		CreateLUT()
+		DefaultCondition.EastAsianWidth = ea
+		CreateLUT()
+		want := (&Condition{EastAsianWidth: ea}).RuneWidth('±')
+		if got := RuneWidth('±'); got != want {
+			t.Errorf("EastAsianWidth=%v after rebuild: RuneWidth(U+00B1) = %d, want %d", ea, got, want)
+		}
+	}
+}
