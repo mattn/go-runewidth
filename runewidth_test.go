@@ -628,3 +628,39 @@ func TestWrapNonPositiveWidth(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateLUTRebuildsAfterFlagChange(t *testing.T) {
+	savedEA, savedLut := DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut
+	defer func() {
+		DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut = savedEA, savedLut
+	}()
+	for _, ea := range []bool{false, true} {
+		DefaultCondition.EastAsianWidth = !ea
+		CreateLUT()
+		DefaultCondition.EastAsianWidth = ea
+		CreateLUT()
+		want := (&Condition{EastAsianWidth: ea}).RuneWidth('±')
+		if got := RuneWidth('±'); got != want {
+			t.Errorf("EastAsianWidth=%v after rebuild: RuneWidth(U+00B1) = %d, want %d", ea, got, want)
+		}
+	}
+}
+
+func TestCreateLUTSkipsRebuildWhenFlagsUnchanged(t *testing.T) {
+	savedEA, savedSEN := DefaultCondition.EastAsianWidth, DefaultCondition.StrictEmojiNeutral
+	savedLut := DefaultCondition.combinedLut
+	defer func() {
+		DefaultCondition.EastAsianWidth, DefaultCondition.StrictEmojiNeutral = savedEA, savedSEN
+		DefaultCondition.combinedLut = savedLut
+	}()
+
+	DefaultCondition.combinedLut = nil
+	CreateLUT()
+	// A rebuild overwrites every entry, so a poisoned byte surviving the
+	// second call is what shows the table was left alone.
+	DefaultCondition.combinedLut[0] = 0xff
+	CreateLUT()
+	if DefaultCondition.combinedLut[0] != 0xff {
+		t.Error("CreateLUT rebuilt the table although no flag changed")
+	}
+}
