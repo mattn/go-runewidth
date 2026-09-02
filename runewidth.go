@@ -566,12 +566,9 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	var out strings.Builder
-	// Capacity hint only; w <= 0 must not panic on the division.
-	grow := len(s) + 1
-	if w > 0 {
-		grow += len(s) / w
-	}
-	out.Grow(grow)
+	// max keeps the capacity hint from dividing by zero when w is 0; a
+	// non-positive width breaks before every rune, as it always has.
+	out.Grow(len(s) + len(s)/max(w, 1) + 1)
 	for _, r := range s {
 		cw := c.RuneWidth(r)
 		if r == '\n' {
