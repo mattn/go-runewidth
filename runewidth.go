@@ -566,7 +566,12 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	var out strings.Builder
-	out.Grow(len(s) + len(s)/w + 1)
+	// Capacity hint only; w <= 0 must not panic on the division.
+	grow := len(s) + 1
+	if w > 0 {
+		grow += len(s) / w
+	}
+	out.Grow(grow)
 	for _, r := range s {
 		cw := c.RuneWidth(r)
 		if r == '\n' {
