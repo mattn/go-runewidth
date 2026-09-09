@@ -664,3 +664,30 @@ func TestCreateLUTSkipsRebuildWhenFlagsUnchanged(t *testing.T) {
 		t.Error("CreateLUT rebuilt the table although no flag changed")
 	}
 }
+
+func TestWrapGraphemeCluster(t *testing.T) {
+	var tests = []struct {
+		s        string
+		w        int
+		expected string
+	}{
+		// a multi-rune cluster is one glyph of at most two cells, so it fits
+		// in two columns and must not be split across lines
+		{"👨‍👩‍👧‍👦", 2, "👨‍👩‍👧‍👦"},
+		{"👩🏽", 2, "👩🏽"},
+		{"👩🏽あ", 2, "👩🏽\nあ"},
+		// breaks still land between clusters
+		{"あい", 3, "あ\nい"},
+		{"あい", 4, "あい"},
+		// a newline resets the column, CRLF included
+		{"あい\nうえ", 4, "あい\nうえ"},
+		{"あい\r\nうえ", 4, "あい\r\nうえ"},
+		{"abcdef", 4, "abcd\nef"},
+		{"abcd\nef", 4, "abcd\nef"},
+	}
+	for _, tt := range tests {
+		if out := Wrap(tt.s, tt.w); out != tt.expected {
+			t.Errorf("Wrap(%q, %d) = %q, want %q", tt.s, tt.w, out, tt.expected)
+		}
+	}
+}
