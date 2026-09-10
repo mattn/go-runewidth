@@ -6,12 +6,15 @@ package runewidth
 import (
 	"crypto/sha256"
 	"fmt"
+	"math/rand"
 	"os"
 	"sort"
 	"strings"
 	"sync"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/clipperhouse/uax29/v2/graphemes"
 )
 
 var _ sort.Interface = (*table)(nil) // ensure that type "table" does implement sort.Interface
@@ -688,6 +691,114 @@ func TestWrapGraphemeCluster(t *testing.T) {
 	for _, tt := range tests {
 		if out := Wrap(tt.s, tt.w); out != tt.expected {
 			t.Errorf("Wrap(%q, %d) = %q, want %q", tt.s, tt.w, out, tt.expected)
+		}
+	}
+}
+
+// clusterWidth and clusterWrap are StringWidth and Wrap with the fast path
+// taken out, the behaviour the fast path has to reproduce exactly.
+func clusterWidth(c *Condition, s string) int {
+	width := 0
+	g := graphemes.FromString(s)
+	for g.Next() {
+		width += c.graphemeWidth(g.Value())
+	}
+	return width
+}
+
+func clusterWrap(c *Condition, s string, w int) string {
+	width := 0
+	var out strings.Builder
+	g := graphemes.FromString(s)
+	for g.Next() {
+		cluster := g.Value()
+		if strings.HasSuffix(cluster, "\n") {
+			out.WriteString(cluster)
+			width = 0
+			continue
+		}
+		cw := c.graphemeWidth(cluster)
+		if width+cw > w {
+			out.WriteByte('\n')
+			width = 0
+		}
+		out.WriteString(cluster)
+		width += cw
+	}
+	return out.String()
+}
+
+// TestIsJoinerAgainstSegmentation checks the joiner table against the
+// segmenter for every rune: a rune the table clears has to break on both
+// sides, or the fast path would glue two clusters together.
+func TestIsJoinerAgainstSegmentation(t *testing.T) {
+	count := func(s string) int {
+		n := 0
+		g := graphemes.FromString(s)
+		for g.Next() {
+			n++
+		}
+		return n
+	}
+	for r := rune(0); r <= utf8.MaxRune; r++ {
+		if r >= 0xD800 && r <= 0xDFFF { // not encodable
+			continue
+		}
+		if isJoiner(r) {
+			continue
+		}
+		if n := count("a" + string(r)); n != 2 {
+			t.Fatalf("isJoiner(%#U) = false but %q is %d cluster(s)", r, "a"+string(r), n)
+		}
+		if n := count(string(r) + "a"); n != 2 {
+			t.Fatalf("isJoiner(%#U) = false but %q is %d cluster(s)", r, string(r)+"a", n)
+		}
+		// Regional indicators break against a letter but pair with each
+		// other, so a rune has to break against itself as well.
+		if n := count(string(r) + string(r)); n != 2 {
+			t.Fatalf("isJoiner(%#U) = false but %q is %d cluster(s)", r, string(r)+string(r), n)
+		}
+	}
+}
+
+var fastPathPieces = []string{
+	"a", "Z", " ", "\t", "\n", "\r\n", "\r", "\x00", "\x7f",
+	"あ", "漢", "ｱ", "。", "±", "é", "é", "́", "゛", "゙",
+	"👩🏽", "👨‍👩‍👧‍👦", "🇯🇵", "🇯", "👍", "‍",
+	"한", "가", "ᄀ", "ᅡ", "क्क", "︀", "󠀁",
+}
+
+func fastPathStrings(seed int64, n int) []string {
+	r := rand.New(rand.NewSource(seed))
+	ss := make([]string, n)
+	for i := range ss {
+		var b strings.Builder
+		for j := r.Intn(8); j > 0; j-- {
+			b.WriteString(fastPathPieces[r.Intn(len(fastPathPieces))])
+		}
+		ss[i] = b.String()
+	}
+	return ss
+}
+
+func TestStringWidthMatchesClusterLoop(t *testing.T) {
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for _, s := range fastPathStrings(1, 20000) {
+			if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
+				t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
+			}
+		}
+	}
+}
+
+func TestWrapMatchesClusterLoop(t *testing.T) {
+	r := rand.New(rand.NewSource(2))
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for _, s := range fastPathStrings(1, 20000) {
+			w := 1 + r.Intn(6)
+			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
+				t.Fatalf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
+			}
 		}
 	}
 }

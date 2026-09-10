@@ -54,10 +54,24 @@ var (
 	strictWidthLUT      [2][0x110000]byte
 	strictWidthLUTLimit atomic.Int32
 	strictWidthLUTOnce  sync.Once
+
+	// joinerBits is the joiner table as a bitmap over
+	// [joinerBase, 0x10000), the range where the per-rune test has to be
+	// cheap for the fast paths in StringWidth and Wrap to pay off. It is
+	// 7.6 KB and init fills it in a few microseconds. Runes above it stay
+	// on the interval search: they are rare in the text these fast paths
+	// are for, and the emoji that are common there leave the fast path at
+	// their first joiner anyway.
+	joinerBits [(0x10000 - joinerBase) / 8]byte
 )
+
+// joinerBase is the lowest rune in the joiner table. CR is the only rune
+// below it that can form a multi-rune cluster, by pairing with LF.
+const joinerBase = 0x300
 
 func init() {
 	initStrictWidthLUTLow()
+	fillJoinerBits()
 	strictWidthLUTLimit.Store(0x300)
 	handleEnv()
 }
@@ -457,6 +471,42 @@ func isASCII(s string) bool {
 	return true
 }
 
+// fillJoinerBits paints joinerBits from the joiner table.
+func fillJoinerBits() {
+	for _, iv := range joiner {
+		if iv.first >= 0x10000 {
+			break // the table is sorted, the rest is astral
+		}
+		lo, hi := int(iv.first)-joinerBase, int(iv.last)-joinerBase
+		if hi >= len(joinerBits)*8 {
+			hi = len(joinerBits)*8 - 1
+		}
+		for lo <= hi {
+			if lo&7 == 0 && lo+7 <= hi {
+				joinerBits[lo>>3] = 0xFF
+				lo += 8
+				continue
+			}
+			joinerBits[lo>>3] |= 1 << uint(lo&7)
+			lo++
+		}
+	}
+}
+
+// isJoiner reports whether r can join with a neighbour into a multi-rune
+// grapheme cluster. A string of runes for which it reports false has one
+// rune per cluster, so measuring it needs no grapheme segmentation.
+func isJoiner(r rune) bool {
+	if r < joinerBase {
+		return r == '\r'
+	}
+	if r < 0x10000 {
+		i := r - joinerBase
+		return joinerBits[i>>3]&(1<<(uint(i)&7)) != 0
+	}
+	return inTable(r, joiner)
+}
+
 // graphemeWidth returns the width of a single grapheme cluster: the sum of
 // the widths of its runes, capped at 2 cells. The cap keeps multi-rune
 // sequences that render as a single glyph (ZWJ emoji, flags, Hangul jamo)
@@ -500,12 +550,33 @@ func (c *Condition) StringWidth(s string) (width int) {
 	return
 
 graphemes:
+	// Runes first: until one of them can join a cluster, each cluster is a
+	// single rune and segmenting the string would only find that out the
+	// expensive way.
+	if w, ok := c.runeWidthSum(s); ok {
+		width = w
+		return
+	}
 	width = 0
 	g := graphemes.FromString(s)
 	for g.Next() {
 		width += c.graphemeWidth(g.Value())
 	}
 	return
+}
+
+// runeWidthSum adds up the widths of the runes in s, and reports false
+// without a total once it meets a rune that can join a cluster, which is
+// where per-rune widths stop being the whole story.
+func (c *Condition) runeWidthSum(s string) (int, bool) {
+	width := 0
+	for _, r := range s {
+		if isJoiner(r) {
+			return 0, false
+		}
+		width += c.RuneWidth(r)
+	}
+	return width, true
 }
 
 // Truncate return string truncated with w cells
@@ -584,15 +655,42 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 	return prefix + s[pos:]
 }
 
-// Wrap return string wrapped with w cells
-func (c *Condition) Wrap(s string, w int) string {
+// wrapRunes wraps s treating every rune as its own grapheme cluster, and
+// reports false without a result once it meets a rune that can join one.
+func (c *Condition) wrapRunes(s string, w int) (string, bool) {
 	width := 0
 	var out strings.Builder
-	// max keeps the capacity hint from dividing by zero when w is 0; a
-	// non-positive width breaks before every cluster, as it always has.
 	out.Grow(len(s) + len(s)/max(w, 1) + 1)
+	for _, r := range s {
+		if isJoiner(r) {
+			return "", false
+		}
+		cw := c.RuneWidth(r)
+		if r == '\n' {
+			out.WriteRune(r)
+			width = 0
+			continue
+		}
+		if width+cw > w {
+			out.WriteByte('\n')
+			width = 0
+		}
+		out.WriteRune(r)
+		width += cw
+	}
+	return out.String(), true
+}
+
+// Wrap return string wrapped with w cells
+func (c *Condition) Wrap(s string, w int) string {
 	// ASCII fast path: no grapheme clustering needed for pure ASCII
 	if isASCII(s) {
+		width := 0
+		var out strings.Builder
+		// max keeps the capacity hint from dividing by zero when w is 0;
+		// a non-positive width breaks before every cluster, as it always
+		// has.
+		out.Grow(len(s) + len(s)/max(w, 1) + 1)
 		for i := 0; i < len(s); i++ {
 			b := s[i]
 			if b == '\n' {
@@ -615,6 +713,15 @@ func (c *Condition) Wrap(s string, w int) string {
 		}
 		return out.String()
 	}
+	// Runes first, as in StringWidth. Reaching a rune that can join a
+	// cluster throws the wrapped text away and starts over on the
+	// segmenter, which is the uncommon case.
+	if out, ok := c.wrapRunes(s, w); ok {
+		return out
+	}
+	width := 0
+	var out strings.Builder
+	out.Grow(len(s) + len(s)/max(w, 1) + 1)
 	g := graphemes.FromString(s)
 	for g.Next() {
 		cluster := g.Value()

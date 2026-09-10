@@ -198,8 +198,9 @@ func BenchmarkFillRightLong(b *testing.B) {
 // Wrap
 //
 
-// Wrap takes the ASCII fast path or the grapheme cluster loop depending on
-// the input, and multi-rune clusters only appear on the latter.
+// The three inputs pick out the paths StringWidth and Wrap can take: the
+// ASCII byte loop, the rune loop for text without joining runes, and the
+// grapheme segmenter for text with them.
 var benchWrapInputs = []struct {
 	name string
 	s    string
@@ -207,6 +208,18 @@ var benchWrapInputs = []struct {
 	{"ascii", strings.Repeat("The quick brown fox jumps over the lazy dog. ", 40)},
 	{"cjk", strings.Repeat("吾輩は猫である。名前はまだ無い。", 40)},
 	{"emoji", strings.Repeat("hello 👨‍👩‍👧‍👦 world 👩🏽 ", 40)},
+}
+
+func BenchmarkStringWidthText(b *testing.B) {
+	for _, in := range benchWrapInputs {
+		b.Run(in.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchSink = StringWidth(in.s)
+			}
+		})
+	}
 }
 
 func BenchmarkWrap(b *testing.B) {
