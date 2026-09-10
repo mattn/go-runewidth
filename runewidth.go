@@ -446,6 +446,17 @@ func (c *Condition) CreateLUT() {
 	c.lutStrictEmojiNeutral = c.StrictEmojiNeutral
 }
 
+// isASCII reports whether s has no byte above 0x7F, in which case every
+// grapheme cluster in s is a single byte apart from CRLF.
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 0x80 {
+			return false
+		}
+	}
+	return true
+}
+
 // graphemeWidth returns the width of a single grapheme cluster: the sum of
 // the widths of its runes, capped at 2 cells. The cap keeps multi-rune
 // sequences that render as a single glyph (ZWJ emoji, flags, Hangul jamo)
@@ -578,22 +589,47 @@ func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	var out strings.Builder
 	// max keeps the capacity hint from dividing by zero when w is 0; a
-	// non-positive width breaks before every rune, as it always has.
+	// non-positive width breaks before every cluster, as it always has.
 	out.Grow(len(s) + len(s)/max(w, 1) + 1)
-	for _, r := range s {
-		cw := c.RuneWidth(r)
-		if r == '\n' {
-			out.WriteRune(r)
-			width = 0
-			continue
-		} else if width+cw > w {
-			out.WriteByte('\n')
-			width = 0
-			out.WriteRune(r)
+	// ASCII fast path: no grapheme clustering needed for pure ASCII
+	if isASCII(s) {
+		for i := 0; i < len(s); i++ {
+			b := s[i]
+			if b == '\n' {
+				out.WriteByte(b)
+				width = 0
+				continue
+			}
+			// Same rule as the StringWidth fast path: no ASCII byte is
+			// wide or ambiguous, so the flags in c cannot change this.
+			cw := 0
+			if b >= 0x20 && b != 0x7F {
+				cw = 1
+			}
+			if width+cw > w {
+				out.WriteByte('\n')
+				width = 0
+			}
+			out.WriteByte(b)
 			width += cw
+		}
+		return out.String()
+	}
+	g := graphemes.FromString(s)
+	for g.Next() {
+		cluster := g.Value()
+		// LF and CRLF are each a single cluster
+		if strings.HasSuffix(cluster, "\n") {
+			out.WriteString(cluster)
+			width = 0
 			continue
 		}
-		out.WriteRune(r)
+		cw := c.graphemeWidth(cluster)
+		if width+cw > w {
+			out.WriteByte('\n')
+			width = 0
+		}
+		out.WriteString(cluster)
 		width += cw
 	}
 	return out.String()
