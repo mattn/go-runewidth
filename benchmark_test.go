@@ -1,11 +1,15 @@
 package runewidth
 
 import (
+	"strings"
 	"testing"
 	"unicode/utf8"
 )
 
-var benchSink int
+var (
+	benchSink       int
+	benchStringSink string
+)
 
 //
 // RuneWidth
@@ -187,5 +191,32 @@ func BenchmarkFillRightShort(b *testing.B) {
 func BenchmarkFillRightLong(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		FillRight("test", 64)
+	}
+}
+
+//
+// Wrap
+//
+
+// Wrap takes the ASCII fast path or the grapheme cluster loop depending on
+// the input, and multi-rune clusters only appear on the latter.
+var benchWrapInputs = []struct {
+	name string
+	s    string
+}{
+	{"ascii", strings.Repeat("The quick brown fox jumps over the lazy dog. ", 40)},
+	{"cjk", strings.Repeat("吾輩は猫である。名前はまだ無い。", 40)},
+	{"emoji", strings.Repeat("hello 👨‍👩‍👧‍👦 world 👩🏽 ", 40)},
+}
+
+func BenchmarkWrap(b *testing.B) {
+	for _, in := range benchWrapInputs {
+		b.Run(in.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchStringSink = Wrap(in.s, 40)
+			}
+		})
 	}
 }
