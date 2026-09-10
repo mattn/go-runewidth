@@ -592,6 +592,9 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 		return s
 	}
 	w -= c.StringWidth(tail)
+	if pos, ok := c.truncateRunes(s, w); ok {
+		return s[:pos] + tail
+	}
 	var width int
 	pos := len(s)
 	g := graphemes.FromString(s)
@@ -606,10 +609,43 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	return s[:pos] + tail
 }
 
+// truncateRunes is the loop in Truncate with every rune taken for a whole
+// cluster, which holds until a rune can join one. It reports false there
+// and leaves the string to the segmenter.
+func (c *Condition) truncateRunes(s string, w int) (int, bool) {
+	width := 0
+	for i, r := range s {
+		if isJoiner(r) {
+			return 0, false
+		}
+		cw := c.RuneWidth(r)
+		if width+cw > w {
+			return i, true
+		}
+		width += cw
+	}
+	return len(s), true
+}
+
+// endsCluster reports whether the byte at i, which follows a rune that
+// cannot join a cluster, also starts one. Cutting there is only safe when
+// the rune that follows does not reach back.
+func endsCluster(s string, i int) bool {
+	if i >= len(s) {
+		return true
+	}
+	r, _ := utf8.DecodeRuneInString(s[i:])
+	return !isJoiner(r)
+}
+
 // TruncateLeft cuts w cells from the beginning of the `s`.
 func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	if c.StringWidth(s) <= w {
 		return prefix
+	}
+
+	if pos, pad, ok := c.truncateLeftRunes(s, w); ok {
+		return prefix + strings.Repeat(" ", pad) + s[pos:]
 	}
 
 	var width int
@@ -636,6 +672,32 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	return prefix + s[pos:]
 }
 
+// truncateLeftRunes is the loop in TruncateLeft with every rune taken for a
+// whole cluster, returning the cut and the padding that replaces the cell
+// the cut lands inside. It reports false at the first rune that can join a
+// cluster.
+func (c *Condition) truncateLeftRunes(s string, w int) (pos, pad int, ok bool) {
+	width := 0
+	for i, r := range s {
+		if isJoiner(r) {
+			return 0, 0, false
+		}
+		cw := c.RuneWidth(r)
+		if width+cw > w {
+			if width >= w {
+				return i, 0, true
+			}
+			end := i + utf8.RuneLen(r)
+			if !endsCluster(s, end) {
+				return 0, 0, false
+			}
+			return end, width + cw - w, true
+		}
+		width += cw
+	}
+	return len(s), 0, true
+}
+
 // TruncatePrefix cuts the beginning of `s` so the result fits in w cells, with prefix prepended
 func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 	if c.StringWidth(prefix) >= w {
@@ -647,6 +709,9 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 		return s
 	}
 	w -= c.StringWidth(prefix)
+	if pos, ok := c.truncatePrefixRunes(s, sw, w); ok {
+		return prefix + s[pos:]
+	}
 	var width int
 	var pos int
 	g := graphemes.FromString(s)
@@ -660,6 +725,27 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 	}
 
 	return prefix + s[pos:]
+}
+
+// truncatePrefixRunes is the loop in TruncatePrefix with every rune taken
+// for a whole cluster, reporting false at the first rune that can join one.
+func (c *Condition) truncatePrefixRunes(s string, sw, w int) (int, bool) {
+	width := 0
+	for i, r := range s {
+		if isJoiner(r) {
+			return 0, false
+		}
+		cw := c.RuneWidth(r)
+		if sw-(width+cw) <= w {
+			end := i + utf8.RuneLen(r)
+			if !endsCluster(s, end) {
+				return 0, false
+			}
+			return end, true
+		}
+		width += cw
+	}
+	return 0, true
 }
 
 // wrapRunes wraps s treating every rune as its own grapheme cluster, and
