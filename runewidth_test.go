@@ -799,6 +799,17 @@ func TestWrapMatchesClusterLoop(t *testing.T) {
 			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
 				t.Fatalf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
 			}
+			for _, affix := range []string{"", "..."} {
+				if got, want := c.Truncate(s, w, affix), clusterTruncate(c, s, w, affix); got != want {
+					t.Fatalf("Truncate(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+				if got, want := c.TruncateLeft(s, w, affix), clusterTruncateLeft(c, s, w, affix); got != want {
+					t.Fatalf("TruncateLeft(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+				if got, want := c.TruncatePrefix(s, w, affix), clusterTruncatePrefix(c, s, w, affix); got != want {
+					t.Fatalf("TruncatePrefix(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+			}
 		}
 	}
 }
@@ -831,6 +842,106 @@ func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
 			w := 1 + r.Intn(6)
 			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
 				t.Fatalf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
+			}
+			for _, affix := range []string{"", "..."} {
+				if got, want := c.Truncate(s, w, affix), clusterTruncate(c, s, w, affix); got != want {
+					t.Fatalf("Truncate(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+				if got, want := c.TruncateLeft(s, w, affix), clusterTruncateLeft(c, s, w, affix); got != want {
+					t.Fatalf("TruncateLeft(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+				if got, want := c.TruncatePrefix(s, w, affix), clusterTruncatePrefix(c, s, w, affix); got != want {
+					t.Fatalf("TruncatePrefix(%q, %d, %q) = %q, cluster loop = %q", s, w, affix, got, want)
+				}
+			}
+		}
+	}
+}
+
+// The three Truncate functions with the fast path taken out, the behaviour
+// it has to reproduce exactly.
+func clusterTruncate(c *Condition, s string, w int, tail string) string {
+	if c.StringWidth(s) <= w {
+		return s
+	}
+	w -= c.StringWidth(tail)
+	var width int
+	pos := len(s)
+	g := graphemes.FromString(s)
+	for g.Next() {
+		chWidth := c.graphemeWidth(g.Value())
+		if width+chWidth > w {
+			pos = g.Start()
+			break
+		}
+		width += chWidth
+	}
+	return s[:pos] + tail
+}
+
+func clusterTruncateLeft(c *Condition, s string, w int, prefix string) string {
+	if c.StringWidth(s) <= w {
+		return prefix
+	}
+	var width int
+	pos := len(s)
+	g := graphemes.FromString(s)
+	for g.Next() {
+		chWidth := c.graphemeWidth(g.Value())
+		if width+chWidth > w {
+			if width < w {
+				pos = g.End()
+				prefix += strings.Repeat(" ", width+chWidth-w)
+			} else {
+				pos = g.Start()
+			}
+			break
+		}
+		width += chWidth
+	}
+	return prefix + s[pos:]
+}
+
+func clusterTruncatePrefix(c *Condition, s string, w int, prefix string) string {
+	if c.StringWidth(prefix) >= w {
+		return prefix
+	}
+	sw := c.StringWidth(s)
+	if sw <= w {
+		return s
+	}
+	w -= c.StringWidth(prefix)
+	var width int
+	var pos int
+	g := graphemes.FromString(s)
+	for g.Next() {
+		chWidth := c.graphemeWidth(g.Value())
+		if sw-(width+chWidth) <= w {
+			pos = g.End()
+			break
+		}
+		width += chWidth
+	}
+	return prefix + s[pos:]
+}
+
+func TestTruncateMatchesClusterLoop(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for _, s := range fastPathStrings(1, 20000) {
+			w := r.Intn(8)
+			for _, tail := range []string{"", "...", "…"} {
+				if got, want := c.Truncate(s, w, tail), clusterTruncate(c, s, w, tail); got != want {
+					t.Fatalf("Truncate(%q, %d, %q) = %q, cluster loop = %q", s, w, tail, got, want)
+				}
+			}
+			for _, prefix := range []string{"", "...", "…"} {
+				if got, want := c.TruncateLeft(s, w, prefix), clusterTruncateLeft(c, s, w, prefix); got != want {
+					t.Fatalf("TruncateLeft(%q, %d, %q) = %q, cluster loop = %q", s, w, prefix, got, want)
+				}
+				if got, want := c.TruncatePrefix(s, w, prefix), clusterTruncatePrefix(c, s, w, prefix); got != want {
+					t.Fatalf("TruncatePrefix(%q, %d, %q) = %q, cluster loop = %q", s, w, prefix, got, want)
+				}
 			}
 		}
 	}

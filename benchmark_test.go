@@ -233,3 +233,39 @@ func BenchmarkWrap(b *testing.B) {
 		})
 	}
 }
+
+func BenchmarkTruncate(b *testing.B) {
+	for _, in := range benchWrapInputs {
+		b.Run(in.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchStringSink = Truncate(in.s, 40, "...")
+			}
+		})
+	}
+}
+
+func BenchmarkTruncateLeft(b *testing.B) {
+	for _, in := range benchWrapInputs {
+		b.Run(in.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchStringSink = TruncateLeft(in.s, 40, "...")
+			}
+		})
+	}
+}
+
+func BenchmarkTruncatePrefix(b *testing.B) {
+	for _, in := range benchWrapInputs {
+		b.Run(in.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchStringSink = TruncatePrefix(in.s, 40, "...")
+			}
+		})
+	}
+}
