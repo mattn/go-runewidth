@@ -600,7 +600,12 @@ func (c *Condition) Wrap(s string, w int) string {
 				width = 0
 				continue
 			}
-			cw := c.RuneWidth(rune(b))
+			// Same rule as the StringWidth fast path: no ASCII byte is
+			// wide or ambiguous, so the flags in c cannot change this.
+			cw := 0
+			if b >= 0x20 && b != 0x7F {
+				cw = 1
+			}
 			if width+cw > w {
 				out.WriteByte('\n')
 				width = 0
