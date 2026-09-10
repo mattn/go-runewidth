@@ -491,6 +491,13 @@ func fillJoinerBits() {
 			lo++
 		}
 	}
+	// A byte that is not valid UTF-8 decodes to U+FFFD, and the segmenter
+	// can gather a run of such bytes into one cluster, which a rune loop
+	// has no way to see. Marking U+FFFD keeps those strings on the
+	// segmenter, and the only string it holds back needlessly is one that
+	// really contains U+FFFD.
+	i := int(utf8.RuneError) - joinerBase
+	joinerBits[i>>3] |= 1 << uint(i&7)
 }
 
 // isJoiner reports whether r can join with a neighbour into a multi-rune

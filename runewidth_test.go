@@ -802,3 +802,36 @@ func TestWrapMatchesClusterLoop(t *testing.T) {
 		}
 	}
 }
+
+// invalidPieces mixes bytes that are not valid UTF-8 into text. A rune loop
+// sees one U+FFFD per bad byte while the segmenter can gather a run of them
+// into one cluster, so the fast paths have to leave these strings alone.
+var invalidPieces = []string{
+	"\xff", "\x80", "\xe3\x81", "\xf0\x9f", "\xc3",
+	"a", "あ", "é", "\n", "👩🏽", "👨‍👩‍👧‍👦",
+}
+
+func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
+	r := rand.New(rand.NewSource(9))
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for i := 0; i < 20000; i++ {
+			var b strings.Builder
+			for j := 1 + r.Intn(6); j > 0; j-- {
+				b.WriteString(invalidPieces[r.Intn(len(invalidPieces))])
+			}
+			s := b.String()
+			// StringWidth answers a single byte from a shortcut of its
+			// own, which has never agreed with the segmenter on a byte
+			// that is not valid UTF-8.
+			if len(s) > 1 {
+				if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
+					t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
+				}
+			}
+			w := 1 + r.Intn(6)
+			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
+				t.Fatalf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
+			}
+		}
+	}
+}
