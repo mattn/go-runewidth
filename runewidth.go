@@ -700,13 +700,12 @@ func (c *Condition) truncateLeftRunes(s string, w int) (pos, pad int, ok bool) {
 
 // TruncatePrefix cuts the beginning of `s` so the result fits in w cells, with prefix prepended
 func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
-	if c.StringWidth(prefix) >= w {
-		return prefix
-	}
-
 	sw := c.StringWidth(s)
 	if sw <= w {
 		return s
+	}
+	if c.StringWidth(prefix) >= w {
+		return prefix
 	}
 	w -= c.StringWidth(prefix)
 	if pos, ok := c.truncatePrefixRunes(s, sw, w); ok {
