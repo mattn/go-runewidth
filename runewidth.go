@@ -514,6 +514,36 @@ func isJoiner(r rune) bool {
 	return inTable(r, joiner)
 }
 
+// clusterText returns s to segment in place of s. When s ends in a lead
+// byte short of the bytes it promises, the segmenter gives up there and
+// glues everything from it onto the cluster before, where the two-cell cap
+// hides it, although the same bytes followed by anything else form
+// clusters of their own. Such a string gets NULs after it, enough for any
+// lead byte to be decoded; as controls they are clusters of their own, and
+// the loops over the clusters stop at len(s) before reaching them.
+func clusterText(s string) string {
+	if endsShort(s) {
+		return s + "\x00\x00\x00"
+	}
+	return s
+}
+
+// endsShort reports whether one of the last three bytes of s is a lead
+// byte that needs more bytes than are left, which is where the segmenter
+// stops decoding. It only looks at the length the lead byte announces, not
+// at whether the bytes after it could continue it, as the segmenter does.
+func endsShort(s string) bool {
+	for i := max(len(s)-3, 0); i < len(s); i++ {
+		b, left := s[i], len(s)-i
+		if b >= 0xC2 && b < 0xE0 && left < 2 ||
+			b >= 0xE0 && b < 0xF0 && left < 3 ||
+			b >= 0xF0 && b < 0xF8 && left < 4 {
+			return true
+		}
+	}
+	return false
+}
+
 // graphemeWidth returns the width of a single grapheme cluster: the sum of
 // the widths of its runes, capped at 2 cells. The cap keeps multi-rune
 // sequences that render as a single glyph (ZWJ emoji, flags, Hangul jamo)
@@ -570,8 +600,8 @@ graphemes:
 		return
 	}
 	width = 0
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		width += c.graphemeWidth(g.Value())
 	}
 	return
@@ -602,8 +632,8 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	}
 	var width int
 	pos := len(s)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			pos = g.Start()
@@ -656,8 +686,8 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	var width int
 	pos := len(s)
 
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 
 		if width+chWidth > w {
@@ -719,8 +749,8 @@ func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
 	}
 	var width int
 	var pos int
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if sw-(width+chWidth) <= w {
 			pos = g.End()
@@ -828,8 +858,8 @@ func (c *Condition) Wrap(s string, w int) string {
 	width := 0
 	var out strings.Builder
 	out.Grow(len(s) + len(s)/max(w, 1) + 1)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		cluster := g.Value()
 		// LF and CRLF are each a single cluster
 		if strings.HasSuffix(cluster, "\n") {

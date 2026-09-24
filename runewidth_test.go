@@ -712,8 +712,8 @@ func TestWrapGraphemeCluster(t *testing.T) {
 // taken out, the behaviour the fast path has to reproduce exactly.
 func clusterWidth(c *Condition, s string) int {
 	width := 0
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		width += c.graphemeWidth(g.Value())
 	}
 	return width
@@ -722,8 +722,8 @@ func clusterWidth(c *Condition, s string) int {
 func clusterWrap(c *Condition, s string, w int) string {
 	width := 0
 	var out strings.Builder
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		cluster := g.Value()
 		if strings.HasSuffix(cluster, "\n") {
 			out.WriteString(cluster)
@@ -866,6 +866,28 @@ func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
 	}
 }
 
+func TestIncompleteSequenceAtTheEnd(t *testing.T) {
+	// The bytes of a sequence cut short at the end are measured as they
+	// are when anything follows them, rather than vanishing into the
+	// cluster before them.
+	r := rand.New(rand.NewSource(10))
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for i := 0; i < 20000; i++ {
+			var b strings.Builder
+			for j := 1 + r.Intn(6); j > 0; j-- {
+				b.WriteString(invalidPieces[r.Intn(len(invalidPieces))])
+			}
+			s := b.String()
+			if got, want := c.StringWidth(s), c.StringWidth(s+" ")-1; got != want {
+				t.Fatalf("StringWidth(%q) = %d, want %d as with a space after it", s, got, want)
+			}
+		}
+	}
+	if got := Truncate("あ\xe3\x81", 2, ""); got != "あ" {
+		t.Errorf("Truncate(%q, 2, \"\") = %q, want %q", "あ\xe3\x81", got, "あ")
+	}
+}
+
 // The three Truncate functions with the fast path taken out, the behaviour
 // it has to reproduce exactly.
 func clusterTruncate(c *Condition, s string, w int, tail string) string {
@@ -875,8 +897,8 @@ func clusterTruncate(c *Condition, s string, w int, tail string) string {
 	w -= c.StringWidth(tail)
 	var width int
 	pos := len(s)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			pos = g.Start()
@@ -893,8 +915,8 @@ func clusterTruncateLeft(c *Condition, s string, w int, prefix string) string {
 	}
 	var width int
 	pos := len(s)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			if width < w {
@@ -921,8 +943,8 @@ func clusterTruncatePrefix(c *Condition, s string, w int, prefix string) string 
 	w -= c.StringWidth(prefix)
 	var width int
 	var pos int
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if sw-(width+chWidth) <= w {
 			pos = g.End()
