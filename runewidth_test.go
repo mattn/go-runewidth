@@ -831,13 +831,8 @@ func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
 				b.WriteString(invalidPieces[r.Intn(len(invalidPieces))])
 			}
 			s := b.String()
-			// StringWidth answers a single byte from a shortcut of its
-			// own, which has never agreed with the segmenter on a byte
-			// that is not valid UTF-8.
-			if len(s) > 1 {
-				if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
-					t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
-				}
+			if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
+				t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
 			}
 			w := 1 + r.Intn(6)
 			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {

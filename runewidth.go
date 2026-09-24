@@ -536,6 +536,11 @@ func (c *Condition) StringWidth(s string) (width int) {
 		if b < 0x20 || b == 0x7F {
 			return 0
 		}
+		if b >= 0x80 {
+			// Not UTF-8 on its own: measure it as the U+FFFD every other
+			// path decodes it to, which is ambiguous width.
+			return c.RuneWidth(utf8.RuneError)
+		}
 		return 1
 	}
 	if len(s) > 0 && len(s) <= utf8.UTFMax {
