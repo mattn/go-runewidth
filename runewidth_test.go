@@ -888,6 +888,40 @@ func TestIncompleteSequenceAtTheEnd(t *testing.T) {
 	}
 }
 
+func TestClusterCapCoversOnlyTheGlyph(t *testing.T) {
+	// The two-cell cap is for sequences drawn as one glyph. A letter in
+	// front of a skin tone modifier, or a Prepend rune in front of the
+	// rest, is drawn on its own and keeps its cell.
+	c := &Condition{}
+	for _, tt := range []struct {
+		s    string
+		want int
+	}{
+		{"👍🏼", 2},
+		{"🇯🇵", 2},
+		{"👨\u200d👩\u200d👧\u200d👦", 2},
+		{"🏳\ufe0f\u200d🌈", 2},
+		{"\u1100\u1161\u11a8", 2},
+		{"🏼", 2},
+		{" 🏼", 3},
+		{"a🏼", 3},
+		{"\u0890\u0601 ", 3},
+		{"\u0601👍", 3},
+	} {
+		if got := c.StringWidth(tt.s); got != tt.want {
+			t.Errorf("StringWidth(%+q) = %d, want %d", tt.s, got, tt.want)
+		}
+	}
+	for _, s := range []string{"🏼", "\u0890\u0601"} {
+		if got := c.StringWidth(c.FillLeft(s, 4)); got != 4 {
+			t.Errorf("StringWidth(FillLeft(%+q, 4)) = %d, want 4", s, got)
+		}
+		if got := c.StringWidth(c.FillRight(s, 4)); got != 4 {
+			t.Errorf("StringWidth(FillRight(%+q, 4)) = %d, want 4", s, got)
+		}
+	}
+}
+
 // The three Truncate functions with the fast path taken out, the behaviour
 // it has to reproduce exactly.
 func clusterTruncate(c *Condition, s string, w int, tail string) string {

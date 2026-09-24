@@ -545,18 +545,46 @@ func endsShort(s string) bool {
 }
 
 // graphemeWidth returns the width of a single grapheme cluster: the sum of
-// the widths of its runes, capped at 2 cells. The cap keeps multi-rune
-// sequences that render as a single glyph (ZWJ emoji, flags, Hangul jamo)
-// from being counted wider than the two cells terminals give them.
+// the widths of its runes, with the part from the first rune that starts a
+// single glyph (an emoji, a regional indicator, a Hangul jamo or syllable)
+// capped at 2 cells. The cap keeps multi-rune sequences that render as one
+// glyph (ZWJ emoji, skin tones, flags, Hangul jamo) from being counted
+// wider than the two cells terminals give them. What comes before it, such
+// as a Prepend rune, and a cluster with no such rune, like a letter with a
+// skin tone modifier after it, are shown rune by rune and summed.
 func (c *Condition) graphemeWidth(cluster string) int {
-	width := 0
+	if r, size := utf8.DecodeRuneInString(cluster); size == len(cluster) {
+		return c.RuneWidth(r) // one rune, never over the cap
+	}
+	width, glyph := 0, -1
 	for _, r := range cluster {
-		width += c.RuneWidth(r)
+		w := c.RuneWidth(r)
+		if glyph < 0 && r >= 0x1100 && startsGlyph(r) {
+			glyph = 0
+		}
+		if glyph >= 0 {
+			glyph += w
+		} else {
+			width += w
+		}
 	}
-	if width > 2 {
-		width = 2
+	return width + min(max(glyph, 0), 2)
+}
+
+// startsGlyph reports whether r begins a sequence that a terminal draws as
+// a single glyph however many runes it has.
+func startsGlyph(r rune) bool {
+	switch {
+	case 0x1100 <= r && r <= 0x11FF, // Hangul jamo
+		0xA960 <= r && r <= 0xA97F,   // Hangul jamo extended-A
+		0xAC00 <= r && r <= 0xD7FF,   // Hangul syllables, jamo extended-B
+		0x1F1E6 <= r && r <= 0x1F1FF: // regional indicators
+		return true
+	case r < 0x203C, 0x3299 < r && r < 0x1F004:
+		// Outside the emoji table: spares CJK text the search.
+		return false
 	}
-	return width
+	return inTable(r, emoji)
 }
 
 // StringWidth return width as you can see
