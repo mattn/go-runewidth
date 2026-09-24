@@ -796,6 +796,14 @@ func (c *Condition) Wrap(s string, w int) string {
 				width = 0
 				continue
 			}
+			// CRLF is one cluster that ends the line, as on the
+			// segmenter, so it is never broken before.
+			if b == '\r' && i+1 < len(s) && s[i+1] == '\n' {
+				out.WriteString("\r\n")
+				width = 0
+				i++
+				continue
+			}
 			// Same rule as the StringWidth fast path: no ASCII byte is
 			// wide or ambiguous, so the flags in c cannot change this.
 			cw := 0

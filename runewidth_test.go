@@ -632,6 +632,19 @@ func TestWrapNonPositiveWidth(t *testing.T) {
 	}
 }
 
+func TestWrapCRLFNonPositiveWidth(t *testing.T) {
+	// The ASCII fast path has to keep CRLF together as the segmenter
+	// does, even at a width that breaks before every other cluster.
+	c := &Condition{}
+	for _, s := range []string{"a\r\nb", "\r\n", "ab\r\n\r\ncd", "a\rb", "a\r"} {
+		for _, w := range []int{0, -1, 1, 2} {
+			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
+				t.Errorf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
+			}
+		}
+	}
+}
+
 func TestCreateLUTRebuildsAfterFlagChange(t *testing.T) {
 	savedEA, savedLut := DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut
 	defer func() {
