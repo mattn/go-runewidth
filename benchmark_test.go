@@ -63,10 +63,10 @@ func BenchmarkRuneWidth768(b *testing.B) {
 	benchSink = benchRuneWidth(b, false, 0, 0x300, 702)
 }
 func BenchmarkRuneWidthAllEastAsian(b *testing.B) {
-	benchSink = benchRuneWidth(b, true, 0, utf8.MaxRune+1, 1431130)
+	benchSink = benchRuneWidth(b, true, 0, utf8.MaxRune+1, 1431081)
 }
 func BenchmarkRuneWidth768EastAsian(b *testing.B) {
-	benchSink = benchRuneWidth(b, true, 0, 0x300, 794)
+	benchSink = benchRuneWidth(b, true, 0, 0x300, 745)
 }
 
 //
@@ -126,10 +126,10 @@ func BenchmarkString1Width768(b *testing.B) {
 	benchSink = benchString1Width(b, false, 0, 0x300, 702)
 }
 func BenchmarkString1WidthAllEastAsian(b *testing.B) {
-	benchSink = benchString1Width(b, true, 0, utf8.MaxRune+1, 1435226)
+	benchSink = benchString1Width(b, true, 0, utf8.MaxRune+1, 1435177)
 }
 func BenchmarkString1Width768EastAsian(b *testing.B) {
-	benchSink = benchString1Width(b, true, 0, 0x300, 794)
+	benchSink = benchString1Width(b, true, 0, 0x300, 745)
 }
 
 // tables
