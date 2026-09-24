@@ -632,6 +632,19 @@ func TestWrapNonPositiveWidth(t *testing.T) {
 	}
 }
 
+func TestWrapCRLFNonPositiveWidth(t *testing.T) {
+	// The ASCII fast path has to keep CRLF together as the segmenter
+	// does, even at a width that breaks before every other cluster.
+	c := &Condition{}
+	for _, s := range []string{"a\r\nb", "\r\n", "ab\r\n\r\ncd", "a\rb", "a\r"} {
+		for _, w := range []int{0, -1, 1, 2} {
+			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
+				t.Errorf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
+			}
+		}
+	}
+}
+
 func TestCreateLUTRebuildsAfterFlagChange(t *testing.T) {
 	savedEA, savedLut := DefaultCondition.EastAsianWidth, DefaultCondition.combinedLut
 	defer func() {
@@ -699,8 +712,8 @@ func TestWrapGraphemeCluster(t *testing.T) {
 // taken out, the behaviour the fast path has to reproduce exactly.
 func clusterWidth(c *Condition, s string) int {
 	width := 0
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		width += c.graphemeWidth(g.Value())
 	}
 	return width
@@ -709,8 +722,8 @@ func clusterWidth(c *Condition, s string) int {
 func clusterWrap(c *Condition, s string, w int) string {
 	width := 0
 	var out strings.Builder
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		cluster := g.Value()
 		if strings.HasSuffix(cluster, "\n") {
 			out.WriteString(cluster)
@@ -831,13 +844,8 @@ func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
 				b.WriteString(invalidPieces[r.Intn(len(invalidPieces))])
 			}
 			s := b.String()
-			// StringWidth answers a single byte from a shortcut of its
-			// own, which has never agreed with the segmenter on a byte
-			// that is not valid UTF-8.
-			if len(s) > 1 {
-				if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
-					t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
-				}
+			if got, want := c.StringWidth(s), clusterWidth(c, s); got != want {
+				t.Fatalf("StringWidth(%q) = %d, cluster loop = %d", s, got, want)
 			}
 			w := 1 + r.Intn(6)
 			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
@@ -858,6 +866,62 @@ func TestInvalidUTF8MatchesClusterLoop(t *testing.T) {
 	}
 }
 
+func TestIncompleteSequenceAtTheEnd(t *testing.T) {
+	// The bytes of a sequence cut short at the end are measured as they
+	// are when anything follows them, rather than vanishing into the
+	// cluster before them.
+	r := rand.New(rand.NewSource(10))
+	for _, c := range []*Condition{{}, {EastAsianWidth: true, StrictEmojiNeutral: true}} {
+		for i := 0; i < 20000; i++ {
+			var b strings.Builder
+			for j := 1 + r.Intn(6); j > 0; j-- {
+				b.WriteString(invalidPieces[r.Intn(len(invalidPieces))])
+			}
+			s := b.String()
+			if got, want := c.StringWidth(s), c.StringWidth(s+" ")-1; got != want {
+				t.Fatalf("StringWidth(%q) = %d, want %d as with a space after it", s, got, want)
+			}
+		}
+	}
+	if got := Truncate("あ\xe3\x81", 2, ""); got != "あ" {
+		t.Errorf("Truncate(%q, 2, \"\") = %q, want %q", "あ\xe3\x81", got, "あ")
+	}
+}
+
+func TestClusterCapCoversOnlyTheGlyph(t *testing.T) {
+	// The two-cell cap is for sequences drawn as one glyph. A letter in
+	// front of a skin tone modifier, or a Prepend rune in front of the
+	// rest, is drawn on its own and keeps its cell.
+	c := &Condition{}
+	for _, tt := range []struct {
+		s    string
+		want int
+	}{
+		{"👍🏼", 2},
+		{"🇯🇵", 2},
+		{"👨\u200d👩\u200d👧\u200d👦", 2},
+		{"🏳\ufe0f\u200d🌈", 2},
+		{"\u1100\u1161\u11a8", 2},
+		{"🏼", 2},
+		{" 🏼", 3},
+		{"a🏼", 3},
+		{"\u0890\u0601 ", 3},
+		{"\u0601👍", 3},
+	} {
+		if got := c.StringWidth(tt.s); got != tt.want {
+			t.Errorf("StringWidth(%+q) = %d, want %d", tt.s, got, tt.want)
+		}
+	}
+	for _, s := range []string{"🏼", "\u0890\u0601"} {
+		if got := c.StringWidth(c.FillLeft(s, 4)); got != 4 {
+			t.Errorf("StringWidth(FillLeft(%+q, 4)) = %d, want 4", s, got)
+		}
+		if got := c.StringWidth(c.FillRight(s, 4)); got != 4 {
+			t.Errorf("StringWidth(FillRight(%+q, 4)) = %d, want 4", s, got)
+		}
+	}
+}
+
 // The three Truncate functions with the fast path taken out, the behaviour
 // it has to reproduce exactly.
 func clusterTruncate(c *Condition, s string, w int, tail string) string {
@@ -867,8 +931,8 @@ func clusterTruncate(c *Condition, s string, w int, tail string) string {
 	w -= c.StringWidth(tail)
 	var width int
 	pos := len(s)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			pos = g.Start()
@@ -885,8 +949,8 @@ func clusterTruncateLeft(c *Condition, s string, w int, prefix string) string {
 	}
 	var width int
 	pos := len(s)
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if width+chWidth > w {
 			if width < w {
@@ -913,8 +977,8 @@ func clusterTruncatePrefix(c *Condition, s string, w int, prefix string) string 
 	w -= c.StringWidth(prefix)
 	var width int
 	var pos int
-	g := graphemes.FromString(s)
-	for g.Next() {
+	g := graphemes.FromString(clusterText(s))
+	for g.Next() && g.Start() < len(s) {
 		chWidth := c.graphemeWidth(g.Value())
 		if sw-(width+chWidth) <= w {
 			pos = g.End()
