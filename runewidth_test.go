@@ -48,7 +48,8 @@ var tables = []tableInfo{
 	{nonprint, "nonprint", 2143, "288904683eb225e7c4c0bd3ee481b53e8dace404ec31d443afdbc4d13729fe95"},
 	{combining, "combining", 2081, "bbb88427a84cf23bd601d560b32ffd88b1d0c1aeb365b54af37f1ad7d7e6944e"},
 	{doublewidth, "doublewidth", 182876, "55dcb1b999d6356d1a083085bb053bdeafc6dda05dec002617d85fda2a82d496"},
-	{ambiguous, "ambiguous", 138483, "f4ed2dd733c0821cf6297fc24be0baea527ec7cad10d23b0ac7f57dcdf344cdb"},
+	{ambiguous, "ambiguous", 138434, "e80888b6a945b236e05051f1e9a7eb4adedb761b8a4fd4d97222ae9b2d8b8d07"},
+	{ambiguousLatin, "ambiguousLatin", 49, "52ec517050248a0aef27cacbdf0e023635f0a148c426991cf7e9083911f849ca"},
 	{emoji, "emoji", 2846, "09914b87febaa5493f2420a58f03dd6b026fa665b7c811abc7423a26a9b442c3"},
 	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
 	{neutral, "neutral", 33695, "f6af4edbdfe84d0c4c4419da8e2f86e49248010bad19c4ed7bf1897696db9084"},
@@ -78,7 +79,7 @@ func TestRuneWidthChecksums(t *testing.T) {
 		wantSHA        string
 	}{
 		{"ea-no", false, "b166b7c41c9231ce5a3f05d94b0da79c245714d5f708b3002ccef55bda38152d"},
-		{"ea-yes", true, "d46d9c64c35351d6daa041d69092fb1181d63096ca089149ecc4b922bc0e2cf8"},
+		{"ea-yes", true, "c9c2746d2879bcd942bfe70de322780c92a40a72f4147e5125985b1f91301215"},
 	}
 
 	for _, testcase := range testcases {
@@ -149,7 +150,7 @@ func TestDefaultLUT(t *testing.T) {
 		wantSHA        string
 	}{
 		{"ea-no", false, "b166b7c41c9231ce5a3f05d94b0da79c245714d5f708b3002ccef55bda38152d"},
-		{"ea-yes", true, "d46d9c64c35351d6daa041d69092fb1181d63096ca089149ecc4b922bc0e2cf8"},
+		{"ea-yes", true, "c9c2746d2879bcd942bfe70de322780c92a40a72f4147e5125985b1f91301215"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")
@@ -641,6 +642,39 @@ func TestWrapCRLFNonPositiveWidth(t *testing.T) {
 			if got, want := c.Wrap(s, w), clusterWrap(c, s, w); got != want {
 				t.Errorf("Wrap(%q, %d) = %q, cluster loop = %q", s, w, got, want)
 			}
+		}
+	}
+}
+
+func TestAmbiguousLatinLettersAreNarrow(t *testing.T) {
+	// Latin letters stay one cell with EastAsianWidth although Unicode
+	// gives them ambiguous width, while ambiguous symbols take two.
+	for _, ea := range []bool{false, true} {
+		c := &Condition{EastAsianWidth: ea}
+		for _, lut := range []bool{false, true} {
+			if lut {
+				c.CreateLUT()
+			}
+			for _, r := range "üéßæøªºāđħıłŋœŧ" {
+				if got := c.RuneWidth(r); got != 1 {
+					t.Errorf("EastAsianWidth=%v LUT=%v: RuneWidth(%q) = %d, want 1", ea, lut, r, got)
+				}
+				if !IsAmbiguousWidth(r) {
+					t.Errorf("IsAmbiguousWidth(%q) = false, want true", r)
+				}
+			}
+			want := 1
+			if ea {
+				want = 2
+			}
+			for _, r := range "±×÷°§¡¿" {
+				if got := c.RuneWidth(r); got != want {
+					t.Errorf("EastAsianWidth=%v LUT=%v: RuneWidth(%q) = %d, want %d", ea, lut, r, got, want)
+				}
+			}
+		}
+		if got := c.StringWidth("München"); got != 7 {
+			t.Errorf("EastAsianWidth=%v: StringWidth(%q) = %d, want 7", ea, "München", got)
 		}
 	}
 }
