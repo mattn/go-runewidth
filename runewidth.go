@@ -933,8 +933,13 @@ func RuneWidth(r rune) int {
 }
 
 // IsAmbiguousWidth returns whether is ambiguous width or not.
+//
+// NOTE: The Latin letters of U+0080..U+017F that Unicode gives ambiguous
+// width (ü, é, ß, æ, ø and so on) are reported as ambiguous here, but
+// RuneWidth measures them as one cell even with EastAsianWidth, since
+// terminals draw them narrow in CJK locales too.
 func IsAmbiguousWidth(r rune) bool {
-	return inTable(r, private) || inTable(r, ambiguous)
+	return inTable(r, private) || inTable(r, ambiguous) || inTable(r, ambiguousLatin)
 }
 
 // IsCombiningWidth returns whether is combining width or not.

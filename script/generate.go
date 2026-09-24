@@ -51,11 +51,23 @@ func shapeup(p *[]rrange) {
 	*p = arr
 }
 
+// isLetter reports whether the general category in the comment of a line
+// of EastAsianWidth.txt is a letter (Lu, Ll, Lo, L& and so on).
+func isLetter(line string) bool {
+	i := strings.Index(line, "#")
+	if i < 0 {
+		return false
+	}
+	f := strings.Fields(line[i+1:])
+	return len(f) > 0 && strings.HasPrefix(f[0], "L")
+}
+
 func eastasian(out io.Writer, in io.Reader) error {
 	scanner := bufio.NewScanner(in)
 
 	dbl := []rrange{}
 	amb := []rrange{}
+	lat := []rrange{}
 	cmb := []rrange{}
 	na := []rrange{}
 	nu := []rrange{}
@@ -97,6 +109,19 @@ func eastasian(out io.Writer, in io.Reader) error {
 				hi: r2,
 			})
 		case "A":
+			// NOTE: This departs from UAX #11 on purpose. Latin letters
+			// such as ü, é and ß are ambiguous only because legacy CJK
+			// charsets carry them, and terminals draw them in one cell
+			// whatever the locale. They get a table of their own that
+			// only IsAmbiguousWidth consults, so they are one cell even
+			// with EastAsianWidth.
+			if r1 >= 0x80 && r2 <= 0x17F && isLetter(line) {
+				lat = append(lat, rrange{
+					lo: r1,
+					hi: r2,
+				})
+				break
+			}
 			amb = append(amb, rrange{
 				lo: r1,
 				hi: r2,
@@ -124,7 +149,11 @@ func eastasian(out io.Writer, in io.Reader) error {
 
 	shapeup(&amb)
 	generate(out, "ambiguous", amb)
-	fmt.Fprint(out)
+	fmt.Fprintln(out)
+
+	shapeup(&lat)
+	generate(out, "ambiguousLatin", lat)
+	fmt.Fprintln(out)
 
 	shapeup(&na)
 	generate(out, "narrow", na)
