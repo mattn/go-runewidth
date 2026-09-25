@@ -463,6 +463,10 @@ var truncateprefixtests = []struct {
 }{
 	{"source", 4, "*", "*rce"},
 	{"source", 6, "*", "source"},
+	{"a", 2, "...", "a"},
+	{"ab", 2, "..", "ab"},
+	{"", 0, "...", ""},
+	{"あ", 2, "...", "あ"},
 	{"あいうえお", 4, "*", "*お"},
 	{"あいうえお", 10, "*", "あいうえお"},
 	{"Aあいうえお", 5, "*", "*えお"},
@@ -1001,12 +1005,12 @@ func clusterTruncateLeft(c *Condition, s string, w int, prefix string) string {
 }
 
 func clusterTruncatePrefix(c *Condition, s string, w int, prefix string) string {
-	if c.StringWidth(prefix) >= w {
-		return prefix
-	}
 	sw := c.StringWidth(s)
 	if sw <= w {
 		return s
+	}
+	if c.StringWidth(prefix) >= w {
+		return prefix
 	}
 	w -= c.StringWidth(prefix)
 	var width int
