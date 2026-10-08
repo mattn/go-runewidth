@@ -45,7 +45,7 @@ type tableInfo struct {
 
 var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
-	{nonprint, "nonprint", 2143, "288904683eb225e7c4c0bd3ee481b53e8dace404ec31d443afdbc4d13729fe95"},
+	{nonprint, "nonprint", 2153, "327fae1fb49da247aac9d82fbad7ee1ab99d0fe06a416da7dfe949f6c4b8e4cf"},
 	{combining, "combining", 2081, "bbb88427a84cf23bd601d560b32ffd88b1d0c1aeb365b54af37f1ad7d7e6944e"},
 	{doublewidth, "doublewidth", 182876, "55dcb1b999d6356d1a083085bb053bdeafc6dda05dec002617d85fda2a82d496"},
 	{ambiguous, "ambiguous", 138434, "e80888b6a945b236e05051f1e9a7eb4adedb761b8a4fd4d97222ae9b2d8b8d07"},
@@ -78,8 +78,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "b166b7c41c9231ce5a3f05d94b0da79c245714d5f708b3002ccef55bda38152d"},
-		{"ea-yes", true, "c9c2746d2879bcd942bfe70de322780c92a40a72f4147e5125985b1f91301215"},
+		{"ea-no", false, "32f1852af80b3542706f37094bc58bcaea0bdaadff1b223d408efc52adab7ab6"},
+		{"ea-yes", true, "a353c94ce4ecea1246818026d1003ddb6b702f67a6be31fb9f8c46f76c6e6cbd"},
 	}
 
 	for _, testcase := range testcases {
@@ -149,8 +149,8 @@ func TestDefaultLUT(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "b166b7c41c9231ce5a3f05d94b0da79c245714d5f708b3002ccef55bda38152d"},
-		{"ea-yes", true, "c9c2746d2879bcd942bfe70de322780c92a40a72f4147e5125985b1f91301215"},
+		{"ea-no", false, "32f1852af80b3542706f37094bc58bcaea0bdaadff1b223d408efc52adab7ab6"},
+		{"ea-yes", true, "a353c94ce4ecea1246818026d1003ddb6b702f67a6be31fb9f8c46f76c6e6cbd"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")
@@ -245,8 +245,14 @@ var runewidthtests = []struct {
 	{'\u0300', 0, 0, 0},
 	{'\u2028', 0, 0, 0},
 	{'\u2029', 0, 0, 0},
-	{'a', 1, 1, 1}, // ASCII classified as "na" (narrow)
-	{'⟦', 1, 1, 1}, // non-ASCII classified as "na" (narrow)
+	{'\u061C', 0, 0, 0}, // ARABIC LETTER MARK (Cf)
+	{'\u2060', 0, 0, 0}, // WORD JOINER (Cf)
+	{'\u2064', 0, 0, 0}, // INVISIBLE PLUS (Cf)
+	{'\u2066', 0, 0, 0}, // LEFT-TO-RIGHT ISOLATE (Cf)
+	{'\u2068', 0, 0, 0}, // FIRST STRONG ISOLATE (Cf)
+	{'\u2069', 0, 0, 0}, // POP DIRECTIONAL ISOLATE (Cf)
+	{'a', 1, 1, 1},      // ASCII classified as "na" (narrow)
+	{'⟦', 1, 1, 1},      // non-ASCII classified as "na" (narrow)
 	{'👁', 1, 1, 2},
 	{'\u093E', 1, 1, 1}, // DEVANAGARI VOWEL SIGN AA (Mc) - spacing mark occupies its own cell
 	{'\u0941', 0, 0, 0}, // DEVANAGARI VOWEL SIGN U (Mn) - nonspacing mark
