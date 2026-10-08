@@ -57,13 +57,13 @@ func benchRuneWidth(b *testing.B, eastAsianWidth bool, start, stop rune, want in
 	return n
 }
 func BenchmarkRuneWidthAll(b *testing.B) {
-	benchSink = benchRuneWidth(b, false, 0, utf8.MaxRune+1, 1292760)
+	benchSink = benchRuneWidth(b, false, 0, utf8.MaxRune+1, 1292721)
 }
 func BenchmarkRuneWidth768(b *testing.B) {
 	benchSink = benchRuneWidth(b, false, 0, 0x300, 702)
 }
 func BenchmarkRuneWidthAllEastAsian(b *testing.B) {
-	benchSink = benchRuneWidth(b, true, 0, utf8.MaxRune+1, 1431081)
+	benchSink = benchRuneWidth(b, true, 0, utf8.MaxRune+1, 1431042)
 }
 func BenchmarkRuneWidth768EastAsian(b *testing.B) {
 	benchSink = benchRuneWidth(b, true, 0, 0x300, 745)
@@ -120,13 +120,13 @@ func benchString1Width(b *testing.B, eastAsianWidth bool, start, stop rune, want
 	return n
 }
 func BenchmarkString1WidthAll(b *testing.B) {
-	benchSink = benchString1Width(b, false, 0, utf8.MaxRune+1, 1294808)
+	benchSink = benchString1Width(b, false, 0, utf8.MaxRune+1, 1294769)
 }
 func BenchmarkString1Width768(b *testing.B) {
 	benchSink = benchString1Width(b, false, 0, 0x300, 702)
 }
 func BenchmarkString1WidthAllEastAsian(b *testing.B) {
-	benchSink = benchString1Width(b, true, 0, utf8.MaxRune+1, 1435177)
+	benchSink = benchString1Width(b, true, 0, utf8.MaxRune+1, 1435138)
 }
 func BenchmarkString1Width768EastAsian(b *testing.B) {
 	benchSink = benchString1Width(b, true, 0, 0x300, 745)
