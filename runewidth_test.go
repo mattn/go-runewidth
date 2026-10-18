@@ -556,6 +556,17 @@ func TestFillLeft(t *testing.T) {
 	}
 }
 
+func TestFillNegativeWidth(t *testing.T) {
+	minInt := -int(^uint(0)>>1) - 1
+	for _, fill := range []func(string, int) string{FillLeft, FillRight} {
+		for _, width := range []int{minInt, minInt + 1, -1, 0} {
+			if got := fill("あ", width); got != "あ" {
+				t.Errorf("fill(%q, %d) = %q", "あ", width, got)
+			}
+		}
+	}
+}
+
 func TestFillLeftFit(t *testing.T) {
 	s := "あいうえお"
 	expected := "あいうえお"
