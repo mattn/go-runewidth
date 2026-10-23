@@ -356,6 +356,37 @@ func TestStringWidth(t *testing.T) {
 	}
 }
 
+func TestEmojiPresentation(t *testing.T) {
+	for _, c := range []*Condition{
+		{StrictEmojiNeutral: true},
+		{EastAsianWidth: true, StrictEmojiNeutral: true},
+		{},
+		{EastAsianWidth: true},
+	} {
+		for _, s := range []string{"☀️", "❤️", "™️", "↗️", "⌨️", "⚠️"} {
+			if got := c.StringWidth(s); got != 2 {
+				t.Errorf("StringWidth(%q), EA=%v strict=%v = %d, want 2", s, c.EastAsianWidth, c.StrictEmojiNeutral, got)
+			}
+		}
+		// Only VS16 immediately following an emoji changes its width.
+		for _, s := range []string{"☀", "☀︎", "a️", "ᅡ️", "☀́️"} {
+			r, _ := utf8.DecodeRuneInString(s)
+			if got, want := c.StringWidth(s), c.RuneWidth(r); got != want {
+				t.Errorf("StringWidth(%q), EA=%v strict=%v = %d, want %d", s, c.EastAsianWidth, c.StrictEmojiNeutral, got, want)
+			}
+		}
+		if got := c.StringWidth("\u0600☀️"); got != 3 {
+			t.Errorf("StringWidth with Prepend = %d, want 3", got)
+		}
+		if got := c.Wrap("a☀️b", 3); got != "a☀️\nb" {
+			t.Errorf("Wrap = %q, want %q", got, "a☀️\nb")
+		}
+		if got := c.Truncate("a☀️b", 3, ""); got != "a☀️" {
+			t.Errorf("Truncate = %q, want %q", got, "a☀️")
+		}
+	}
+}
+
 func TestStringWidthInvalid(t *testing.T) {
 	s := "こんにちわ\x00世界"
 	if out := StringWidth(s); out != 14 {
