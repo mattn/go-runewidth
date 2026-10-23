@@ -559,8 +559,12 @@ func (c *Condition) graphemeWidth(cluster string) int {
 		return c.RuneWidth(r) // one rune, never over the cap
 	}
 	width, glyph := 0, -1
+	var previous rune
 	for _, r := range cluster {
 		w := c.RuneWidth(r)
+		if r == '\uFE0F' && inTable(previous, emoji) { // VS16 requests emoji presentation.
+			glyph = 2
+		}
 		if glyph < 0 && r >= 0x1100 && startsGlyph(r) {
 			glyph = 0
 		}
@@ -569,6 +573,7 @@ func (c *Condition) graphemeWidth(cluster string) int {
 		} else {
 			width += w
 		}
+		previous = r
 	}
 	return width + min(max(glyph, 0), 2)
 }
