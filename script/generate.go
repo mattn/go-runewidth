@@ -166,6 +166,40 @@ func eastasian(out io.Writer, in io.Reader) error {
 	return nil
 }
 
+// emojiForm emits the runes that have an emoji presentation sequence: the
+// lines of emoji-variation-sequences.txt that pair a rune with U+FE0F as the
+// emoji style. graphemeWidth counts such a pair as 2 cells, however narrow
+// the rune is on its own.
+func emojiForm(out io.Writer, in io.Reader) error {
+	scanner := bufio.NewScanner(in)
+
+	arr := []rrange{}
+	for scanner.Scan() {
+		line := scanner.Text()
+		if i := strings.IndexByte(line, '#'); i >= 0 {
+			line = line[:i]
+		}
+		field := strings.Split(line, ";")
+		if len(field) < 2 || strings.TrimSpace(field[1]) != "emoji style" {
+			continue
+		}
+		var r, vs rune
+		n, err := fmt.Sscanf(field[0], "%x %x", &r, &vs)
+		if err != nil || n != 2 || vs != 0xFE0F {
+			continue
+		}
+		arr = append(arr, rrange{lo: r, hi: r})
+	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+
+	coalesce(&arr)
+	generate(out, "emojiForm", arr)
+
+	return nil
+}
+
 // joiner emits the runes that can join with a neighbour to form a
 // multi-rune grapheme cluster: the GraphemeBreakProperty classes Extend,
 // ZWJ, SpacingMark, Prepend and Regional_Indicator, plus the Hangul classes
@@ -311,6 +345,15 @@ func main() {
 	defer resp.Body.Close()
 
 	emoji(f, resp.Body)
+
+	resp, err = http.Get("https://unicode.org/Public/17.0.0/ucd/emoji/emoji-variation-sequences.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Fprintln(f)
+	emojiForm(f, resp.Body)
 
 	// 15.0.0 is the version github.com/clipperhouse/uax29 built its own
 	// tables from, see the header of its graphemes/trie.go.
