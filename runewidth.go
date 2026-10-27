@@ -555,8 +555,15 @@ func endsShort(s string) bool {
 // as a Prepend rune, and a cluster with no such rune, like a letter with a
 // skin tone modifier after it, are shown rune by rune and summed.
 func (c *Condition) graphemeWidth(cluster string) int {
-	if r, size := utf8.DecodeRuneInString(cluster); size == len(cluster) {
+	r, size := utf8.DecodeRuneInString(cluster)
+	if size == len(cluster) {
 		return c.RuneWidth(r) // one rune, never over the cap
+	}
+	// An emoji presentation sequence, a rune followed by U+FE0F, and a
+	// keycap sequence, such as 1 U+FE0F U+20E3, are drawn as one emoji two
+	// cells wide, even when the rune alone is narrow, such as U+2764.
+	if next, _ := utf8.DecodeRuneInString(cluster[size:]); next == 0xFE0F && inTable(r, emojiForm) {
+		return 2
 	}
 	width, glyph := 0, -1
 	for _, r := range cluster {

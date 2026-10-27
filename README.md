@@ -12,7 +12,7 @@ Usage
 -----
 
 ```go
-runewidth.StringWidth("つのだ☆HIRO") == 12
+runewidth.StringWidth("つのだ☆HIRO❤️") == 14
 ```
 
 NOTE: Latin letters that Unicode gives ambiguous East Asian width, such as
