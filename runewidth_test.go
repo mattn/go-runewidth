@@ -477,6 +477,9 @@ var truncateprefixtests = []struct {
 	{"ab", 2, "..", "ab"},
 	{"", 0, "...", ""},
 	{"あ", 2, "...", "あ"},
+	{"abc", 3, "....", "abc"},
+	{"👨‍👩‍👧", 2, "...", "👨‍👩‍👧"},
+	{"source", 2, "...", "..."},
 	{"あいうえお", 4, "*", "*お"},
 	{"あいうえお", 10, "*", "あいうえお"},
 	{"Aあいうえお", 5, "*", "*えお"},
@@ -504,7 +507,25 @@ func TestTruncatePrefix(t *testing.T) {
 
 	for _, tt := range truncateprefixtests {
 		if out := TruncatePrefix(tt.s, tt.w, tt.prefix); out != tt.out {
-			t.Errorf("TruncatePrefix(%q) = %q, want %q", tt.s, out, tt.out)
+			t.Errorf("TruncatePrefix(%q, %d, %q) = %q, want %q", tt.s, tt.w, tt.prefix, out, tt.out)
+		}
+	}
+}
+
+func TestTruncatePrefixFitsDependsOnCondition(t *testing.T) {
+	t.Parallel()
+
+	// U+2605 is ambiguous: one cell by default, two in East Asian mode.
+	tests := []struct {
+		c   *Condition
+		out string
+	}{
+		{&Condition{}, "★"},
+		{&Condition{EastAsianWidth: true}, "..."},
+	}
+	for _, tt := range tests {
+		if out := tt.c.TruncatePrefix("★", 1, "..."); out != tt.out {
+			t.Errorf("EastAsianWidth=%v: TruncatePrefix(%q, 1, %q) = %q, want %q", tt.c.EastAsianWidth, "★", "...", out, tt.out)
 		}
 	}
 }
