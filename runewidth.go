@@ -765,13 +765,12 @@ func (c *Condition) truncateLeftRunes(s string, w int) (pos, pad int, ok bool) {
 
 // TruncatePrefix cuts the beginning of `s` so the result fits in w cells, with prefix prepended
 func (c *Condition) TruncatePrefix(s string, w int, prefix string) string {
-	if c.StringWidth(prefix) >= w {
-		return prefix
-	}
-
 	sw := c.StringWidth(s)
 	if sw <= w {
 		return s
+	}
+	if c.StringWidth(prefix) >= w {
+		return prefix
 	}
 	w -= c.StringWidth(prefix)
 	if pos, ok := c.truncatePrefixRunes(s, sw, w); ok {
@@ -911,9 +910,8 @@ func (c *Condition) Wrap(s string, w int) string {
 // FillLeft return string filled in left by spaces in w cells
 func (c *Condition) FillLeft(s string, w int) string {
 	width := c.StringWidth(s)
-	count := w - width
-	if count > 0 {
-		return strings.Repeat(" ", count) + s
+	if w > width {
+		return strings.Repeat(" ", w-width) + s
 	}
 	return s
 }
@@ -921,9 +919,8 @@ func (c *Condition) FillLeft(s string, w int) string {
 // FillRight return string filled in left by spaces in w cells
 func (c *Condition) FillRight(s string, w int) string {
 	width := c.StringWidth(s)
-	count := w - width
-	if count > 0 {
-		return s + strings.Repeat(" ", count)
+	if w > width {
+		return s + strings.Repeat(" ", w-width)
 	}
 	return s
 }

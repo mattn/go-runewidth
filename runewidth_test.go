@@ -46,7 +46,7 @@ type tableInfo struct {
 var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
 	{nonprint, "nonprint", 2182, "4142fc47c05a513628fdf338214202bab89eb3d292cbbd161d211e5c49cec0e1"},
-	{combining, "combining", 2118, "0893c077eaac0bf3212b0aa5f3ae90df7e8e5ff355663a48afc0ac60a6cb5944"},
+	{combining, "combining", 2103, "7afb8e10c15e7a3a79209c719620acd11b2e5cc1e325f0c58c5f4df58fc1eb43"},
 	{doublewidth, "doublewidth", 183866, "0ed50d5ef0d3c403b0781cf69aff0f9ea3e3b0a660d9d57de86ca357d47efd36"},
 	{ambiguous, "ambiguous", 138434, "e80888b6a945b236e05051f1e9a7eb4adedb761b8a4fd4d97222ae9b2d8b8d07"},
 	{ambiguousLatin, "ambiguousLatin", 49, "52ec517050248a0aef27cacbdf0e023635f0a148c426991cf7e9083911f849ca"},
@@ -78,8 +78,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "f480d6fc8f8453f4052c786ae1f4a4a3f7993cee635c560bfa78abe9459b5b42"},
-		{"ea-yes", true, "4f15b990fc10b0fc0f840cdb1044a8d26cbe72493fca0eff7a0c504a23a0eb6c"},
+		{"ea-no", false, "f40e45ab14c093bdc4118c400afc9c76b13f9881aefcd4d6ebe447f02a5f92e7"},
+		{"ea-yes", true, "b7992ef82ff52f59feab2c6fb458eec8bb0368c4b621296d6288787324015d89"},
 	}
 
 	for _, testcase := range testcases {
@@ -149,8 +149,8 @@ func TestDefaultLUT(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "f480d6fc8f8453f4052c786ae1f4a4a3f7993cee635c560bfa78abe9459b5b42"},
-		{"ea-yes", true, "4f15b990fc10b0fc0f840cdb1044a8d26cbe72493fca0eff7a0c504a23a0eb6c"},
+		{"ea-no", false, "f40e45ab14c093bdc4118c400afc9c76b13f9881aefcd4d6ebe447f02a5f92e7"},
+		{"ea-yes", true, "b7992ef82ff52f59feab2c6fb458eec8bb0368c4b621296d6288787324015d89"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")
@@ -258,10 +258,12 @@ var runewidthtests = []struct {
 	{'a', 1, 1, 1},          // ASCII classified as "na" (narrow)
 	{'⟦', 1, 1, 1},          // non-ASCII classified as "na" (narrow)
 	{'👁', 1, 1, 2},
-	{'\u093E', 1, 1, 1}, // DEVANAGARI VOWEL SIGN AA (Mc) - spacing mark occupies its own cell
-	{'\u0941', 0, 0, 0}, // DEVANAGARI VOWEL SIGN U (Mn) - nonspacing mark
-	{'\u094D', 0, 0, 0}, // DEVANAGARI SIGN VIRAMA (Mn)
-	{'\u0915', 1, 1, 1}, // DEVANAGARI LETTER KA (Lo) - base consonant, width 1
+	{'\u093E', 1, 1, 1},     // DEVANAGARI VOWEL SIGN AA (Mc) - spacing mark occupies its own cell
+	{'\u0CF3', 1, 1, 1},     // KANNADA SIGN COMBINING ANUSVARA ABOVE RIGHT (Mc)
+	{'\U0001D165', 1, 1, 1}, // MUSICAL SYMBOL COMBINING STEM (Mc)
+	{'\u0941', 0, 0, 0},     // DEVANAGARI VOWEL SIGN U (Mn) - nonspacing mark
+	{'\u094D', 0, 0, 0},     // DEVANAGARI SIGN VIRAMA (Mn)
+	{'\u0915', 1, 1, 1},     // DEVANAGARI LETTER KA (Lo) - base consonant, width 1
 }
 
 func TestRuneWidth(t *testing.T) {
@@ -473,6 +475,13 @@ var truncateprefixtests = []struct {
 }{
 	{"source", 4, "*", "*rce"},
 	{"source", 6, "*", "source"},
+	{"a", 2, "...", "a"},
+	{"ab", 2, "..", "ab"},
+	{"", 0, "...", ""},
+	{"あ", 2, "...", "あ"},
+	{"abc", 3, "....", "abc"},
+	{"👨‍👩‍👧", 2, "...", "👨‍👩‍👧"},
+	{"source", 2, "...", "..."},
 	{"あいうえお", 4, "*", "*お"},
 	{"あいうえお", 10, "*", "あいうえお"},
 	{"Aあいうえお", 5, "*", "*えお"},
@@ -500,7 +509,25 @@ func TestTruncatePrefix(t *testing.T) {
 
 	for _, tt := range truncateprefixtests {
 		if out := TruncatePrefix(tt.s, tt.w, tt.prefix); out != tt.out {
-			t.Errorf("TruncatePrefix(%q) = %q, want %q", tt.s, out, tt.out)
+			t.Errorf("TruncatePrefix(%q, %d, %q) = %q, want %q", tt.s, tt.w, tt.prefix, out, tt.out)
+		}
+	}
+}
+
+func TestTruncatePrefixFitsDependsOnCondition(t *testing.T) {
+	t.Parallel()
+
+	// U+2605 is ambiguous: one cell by default, two in East Asian mode.
+	tests := []struct {
+		c   *Condition
+		out string
+	}{
+		{&Condition{}, "★"},
+		{&Condition{EastAsianWidth: true}, "..."},
+	}
+	for _, tt := range tests {
+		if out := tt.c.TruncatePrefix("★", 1, "..."); out != tt.out {
+			t.Errorf("EastAsianWidth=%v: TruncatePrefix(%q, 1, %q) = %q, want %q", tt.c.EastAsianWidth, "★", "...", out, tt.out)
 		}
 	}
 }
@@ -553,6 +580,17 @@ func TestFillLeft(t *testing.T) {
 
 	if out := FillLeft(s, 15); out != expected {
 		t.Errorf("FillLeft(%q) = %q, want %q", s, out, expected)
+	}
+}
+
+func TestFillNegativeWidth(t *testing.T) {
+	minInt := -int(^uint(0)>>1) - 1
+	for _, fill := range []func(string, int) string{FillLeft, FillRight} {
+		for _, width := range []int{minInt, minInt + 1, -1, 0} {
+			if got := fill("あ", width); got != "あ" {
+				t.Errorf("fill(%q, %d) = %q", "あ", width, got)
+			}
+		}
 	}
 }
 
@@ -1011,12 +1049,12 @@ func clusterTruncateLeft(c *Condition, s string, w int, prefix string) string {
 }
 
 func clusterTruncatePrefix(c *Condition, s string, w int, prefix string) string {
-	if c.StringWidth(prefix) >= w {
-		return prefix
-	}
 	sw := c.StringWidth(s)
 	if sw <= w {
 		return s
+	}
+	if c.StringWidth(prefix) >= w {
+		return prefix
 	}
 	w -= c.StringWidth(prefix)
 	var width int
