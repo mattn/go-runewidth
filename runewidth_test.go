@@ -46,13 +46,13 @@ type tableInfo struct {
 var tables = []tableInfo{
 	{private, "private", 137468, "a4a641206dc8c5de80bd9f03515a54a706a5a4904c7684dc6a33d65c967a51b2"},
 	{nonprint, "nonprint", 2182, "4142fc47c05a513628fdf338214202bab89eb3d292cbbd161d211e5c49cec0e1"},
-	{combining, "combining", 2072, "0541ad44096a4b356274d4da119efd8542b921f09c05c5ce9ad4dbd383743182"},
-	{doublewidth, "doublewidth", 182876, "55dcb1b999d6356d1a083085bb053bdeafc6dda05dec002617d85fda2a82d496"},
+	{combining, "combining", 2103, "7afb8e10c15e7a3a79209c719620acd11b2e5cc1e325f0c58c5f4df58fc1eb43"},
+	{doublewidth, "doublewidth", 183866, "0ed50d5ef0d3c403b0781cf69aff0f9ea3e3b0a660d9d57de86ca357d47efd36"},
 	{ambiguous, "ambiguous", 138434, "e80888b6a945b236e05051f1e9a7eb4adedb761b8a4fd4d97222ae9b2d8b8d07"},
 	{ambiguousLatin, "ambiguousLatin", 49, "52ec517050248a0aef27cacbdf0e023635f0a148c426991cf7e9083911f849ca"},
-	{emoji, "emoji", 2846, "09914b87febaa5493f2420a58f03dd6b026fa665b7c811abc7423a26a9b442c3"},
+	{emoji, "emoji", 2828, "00019f1d80259abd4c330264da98705cb6cdf6b420b5df6ef8dd1e5682176c58"},
 	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
-	{neutral, "neutral", 33695, "f6af4edbdfe84d0c4c4419da8e2f86e49248010bad19c4ed7bf1897696db9084"},
+	{neutral, "neutral", 34383, "2f28f767c69dcc0e5c3afcfe89b668f9859c5cb70f33965ead8dc3c9d20bd628"},
 }
 
 func TestTableChecksums(t *testing.T) {
@@ -78,8 +78,8 @@ func TestRuneWidthChecksums(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "a20f6085db4efe6d88598d2d79dda0acc048b01ec52b4f0053a5e49782febfb9"},
-		{"ea-yes", true, "0a9cf9db35fe478d9318f709640d6ca5f57dd02fa9e8d0dfcd5d1b90bee888e9"},
+		{"ea-no", false, "f40e45ab14c093bdc4118c400afc9c76b13f9881aefcd4d6ebe447f02a5f92e7"},
+		{"ea-yes", true, "b7992ef82ff52f59feab2c6fb458eec8bb0368c4b621296d6288787324015d89"},
 	}
 
 	for _, testcase := range testcases {
@@ -149,8 +149,8 @@ func TestDefaultLUT(t *testing.T) {
 		eastAsianWidth bool
 		wantSHA        string
 	}{
-		{"ea-no", false, "a20f6085db4efe6d88598d2d79dda0acc048b01ec52b4f0053a5e49782febfb9"},
-		{"ea-yes", true, "0a9cf9db35fe478d9318f709640d6ca5f57dd02fa9e8d0dfcd5d1b90bee888e9"},
+		{"ea-no", false, "f40e45ab14c093bdc4118c400afc9c76b13f9881aefcd4d6ebe447f02a5f92e7"},
+		{"ea-yes", true, "b7992ef82ff52f59feab2c6fb458eec8bb0368c4b621296d6288787324015d89"},
 	}
 
 	old := os.Getenv("RUNEWIDTH_EASTASIAN")

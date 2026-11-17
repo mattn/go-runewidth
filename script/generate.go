@@ -295,7 +295,7 @@ func main() {
 
 	fmt.Fprint(f, "package runewidth\n\n")
 
-	resp, err := http.Get("https://unicode.org/Public/17.0.0/ucd/EastAsianWidth.txt")
+	resp, err := http.Get("https://unicode.org/Public/18.0.0/ucd/EastAsianWidth.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -303,7 +303,7 @@ func main() {
 
 	eastasian(f, resp.Body)
 
-	resp, err = http.Get("https://unicode.org/Public/17.0.0/ucd/emoji/emoji-data.txt")
+	resp, err = http.Get("https://unicode.org/Public/18.0.0/ucd/emoji/emoji-data.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -315,7 +315,7 @@ func main() {
 	// tables from, see the header of its graphemes/trie.go.
 	var gbp []io.Reader
 	for _, u := range []string{
-		"https://unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakProperty.txt",
+		"https://unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakProperty.txt",
 		"https://unicode.org/Public/15.0.0/ucd/auxiliary/GraphemeBreakProperty.txt",
 	} {
 		resp, err = http.Get(u)
