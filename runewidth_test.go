@@ -51,6 +51,7 @@ var tables = []tableInfo{
 	{ambiguous, "ambiguous", 138434, "e80888b6a945b236e05051f1e9a7eb4adedb761b8a4fd4d97222ae9b2d8b8d07"},
 	{ambiguousLatin, "ambiguousLatin", 49, "52ec517050248a0aef27cacbdf0e023635f0a148c426991cf7e9083911f849ca"},
 	{emoji, "emoji", 2828, "00019f1d80259abd4c330264da98705cb6cdf6b420b5df6ef8dd1e5682176c58"},
+	{emojiForm, "emojiForm", 371, "1c3d92ed37ef70232eebfb0a87f940dba2e63970f06453494cb50041794ad982"},
 	{narrow, "narrow", 111, "fa897699c5e3cd9141c638d539331b0bdd508b874e22996c5e929767d455fc5a"},
 	{neutral, "neutral", 34383, "2f28f767c69dcc0e5c3afcfe89b668f9859c5cb70f33965ead8dc3c9d20bd628"},
 }
@@ -1089,6 +1090,42 @@ func TestTruncateMatchesClusterLoop(t *testing.T) {
 					t.Fatalf("TruncatePrefix(%q, %d, %q) = %q, cluster loop = %q", s, w, prefix, got, want)
 				}
 			}
+		}
+	}
+}
+
+func TestEmojiPresentationSequence(t *testing.T) {
+	tests := []struct {
+		in   string
+		want int
+	}{
+		{"\u2764", 1},
+		{"\u2764\ufe0f", 2},
+		{"\u00a9\ufe0f", 2},
+		{"\u00ae\ufe0f", 2},
+		{"\u2122\ufe0f", 2},
+		{"\u2714\ufe0f", 2},
+		{"\u263a\ufe0f", 2},
+		{"\u2600\ufe0f", 2},
+		{"\u2b06\ufe0f", 2},
+		{"\u24c2\ufe0f", 2},
+		{"\U0001f170\ufe0f", 2},
+		{"1\ufe0f\u20e3", 2},
+		{"#\ufe0f\u20e3", 2},
+		{"*\ufe0f\u20e3", 2},
+		{"1\ufe0f", 2},
+		{"\u2764\ufe0f\u2764\ufe0f", 4},
+		{"a\u2764\ufe0fb", 4},
+		{"\U0001f3f3\ufe0f\u200d\U0001f308", 2},
+		{"\U0001f441\ufe0f\u200d\U0001f5e8\ufe0f", 2},
+		{"\u231a\ufe0e", 2},
+		{"1", 1},
+		{"\u00a9", 1},
+		{"a\ufe0f", 1},
+	}
+	for _, tt := range tests {
+		if got := StringWidth(tt.in); got != tt.want {
+			t.Errorf("StringWidth(%+q) = %d, want %d", tt.in, got, tt.want)
 		}
 	}
 }
