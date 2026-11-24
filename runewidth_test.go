@@ -790,6 +790,35 @@ func TestWrapGraphemeCluster(t *testing.T) {
 	}
 }
 
+func TestWrapWideClusterAtLineStart(t *testing.T) {
+	// A cluster wider than w goes on a line of its own; breaking before it
+	// when the line is still empty, or before a zero-width cluster, would
+	// only add a line that shows nothing.
+	var tests = []struct {
+		s        string
+		w        int
+		expected string
+	}{
+		{"あい", 1, "あ\nい"},
+		{"aあ", 1, "a\nあ"},
+		{"a\nあ", 1, "a\nあ"},
+		{"a\r\nあ", 1, "a\r\nあ"},
+		{"👨‍👩‍👧‍👦x", 1, "👨‍👩‍👧‍👦\nx"},
+		{"\u0301あい", 1, "\u0301あ\nい"},
+		{"abc", 0, "a\nb\nc"},
+		{"ab", -1, "a\nb"},
+		{"\x00a", 0, "\x00a"},
+		{"a\x00", 0, "a\x00"},
+		{"あ\x00", 1, "あ\x00"},
+		{"あ\u200bい", 1, "あ\u200b\nい"},
+	}
+	for _, tt := range tests {
+		if out := Wrap(tt.s, tt.w); out != tt.expected {
+			t.Errorf("Wrap(%q, %d) = %q, want %q", tt.s, tt.w, out, tt.expected)
+		}
+	}
+}
+
 // clusterWidth and clusterWrap are StringWidth and Wrap with the fast path
 // taken out, the behaviour the fast path has to reproduce exactly.
 func clusterWidth(c *Condition, s string) int {
@@ -813,7 +842,7 @@ func clusterWrap(c *Condition, s string, w int) string {
 			continue
 		}
 		cw := c.graphemeWidth(cluster)
-		if width+cw > w {
+		if cw > 0 && width > 0 && width+cw > w {
 			out.WriteByte('\n')
 			width = 0
 		}
