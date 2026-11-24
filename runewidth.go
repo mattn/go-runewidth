@@ -828,7 +828,7 @@ func (c *Condition) wrapRunes(s string, w int) (string, bool) {
 			width = 0
 			continue
 		}
-		if width+cw > w {
+		if cw > 0 && width > 0 && width+cw > w {
 			out.WriteByte('\n')
 			width = 0
 		}
@@ -845,8 +845,8 @@ func (c *Condition) Wrap(s string, w int) string {
 		width := 0
 		var out strings.Builder
 		// max keeps the capacity hint from dividing by zero when w is 0;
-		// a non-positive width breaks before every cluster, as it always
-		// has.
+		// a non-positive width puts every visible cluster on a line of its
+		// own.
 		out.Grow(len(s) + len(s)/max(w, 1) + 1)
 		for i := 0; i < len(s); i++ {
 			b := s[i]
@@ -869,7 +869,7 @@ func (c *Condition) Wrap(s string, w int) string {
 			if b >= 0x20 && b != 0x7F {
 				cw = 1
 			}
-			if width+cw > w {
+			if cw > 0 && width > 0 && width+cw > w {
 				out.WriteByte('\n')
 				width = 0
 			}
@@ -897,7 +897,7 @@ func (c *Condition) Wrap(s string, w int) string {
 			continue
 		}
 		cw := c.graphemeWidth(cluster)
-		if width+cw > w {
+		if cw > 0 && width > 0 && width+cw > w {
 			out.WriteByte('\n')
 			width = 0
 		}
